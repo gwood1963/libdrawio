@@ -4,6 +4,8 @@
 #define DRAWIOSTYLE_H
 
 #include <boost/optional.hpp>
+#include <boost/optional/optional.hpp>
+#include "DRAWIOTypes.h"
 
 namespace libdrawio {
   struct DRAWIOStyle {
@@ -13,6 +15,23 @@ namespace libdrawio {
     double exitX, exitY; // same range as above
     bool wrapText;
     double rotation; // rotation in [0,360]
+    boost::optional<Color> fillColor;
+    double margin;
+    Color gradientColor;
+    Direction gradientDirection;
+    boost::optional<Color> strokeColor;
+    double strokeWidth;
+    AlignH align;
+    AlignV verticalAlign;
+    AlignH labelPosition;
+    AlignV verticalLabelPosition;
+    bool flipH, flipV;
+    boost::optional<Color> labelBackgroundColor;
+    boost::optional<Color> labelBorderColor;
+    bool shadow;
+    bool dashed;
+    bool rounded;
+    bool curved;
   };
 }
 

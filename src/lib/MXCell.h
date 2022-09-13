@@ -13,7 +13,7 @@ namespace libdrawio {
     std::string id;
     DRAWIOUserObject data;
     MXGeometry geometry;
-    std::string style; // TODO: maybe create new type for style data
+    std::string style;
     bool vertex, edge, connectable, visible, collapsed;
     std::string parent, source, target;
     std::vector<std::string> children; // holds references to child cells
