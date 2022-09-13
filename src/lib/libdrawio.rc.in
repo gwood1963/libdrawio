@@ -1,0 +1,31 @@
+#include <winver.h>
+
+VS_VERSION_INFO VERSIONINFO
+  FILEVERSION @DRAWIO_MAJOR_VERSION@,@DRAWIO_MINOR_VERSION@,@DRAWIO_MICRO_VERSION@,BUILDNUMBER
+  PRODUCTVERSION @DRAWIO_MAJOR_VERSION@,@DRAWIO_MINOR_VERSION@,@DRAWIO_MICRO_VERSION@,0
+  FILEFLAGSMASK 0
+  FILEFLAGS 0
+  FILEOS VOS__WINDOWS32
+  FILETYPE VFT_DLL
+  FILESUBTYPE VFT2_UNKNOWN
+  BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+      BLOCK "040904B0"
+      BEGIN
+	VALUE "CompanyName", "The libdrawio developer community"
+	VALUE "FileDescription", "libdrawio"
+	VALUE "FileVersion", "@DRAWIO_MAJOR_VERSION@.@DRAWIO_MINOR_VERSION@.@DRAWIO_MICRO_VERSION@.BUILDNUMBER"
+	VALUE "InternalName", "libdrawio-0.0"
+	VALUE "LegalCopyright", "Copyright (C) 2022 George Wood, other contributors"
+	VALUE "OriginalFilename", "libdrawio-0.0.dll"
+	VALUE "ProductName", "libdrawio"
+	VALUE "ProductVersion", "@DRAWIO_MAJOR_VERSION@.@DRAWIO_MINOR_VERSION@.@DRAWIO_MICRO_VERSION@"
+      END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+      VALUE "Translation", 0x409, 1200
+    END
+  END
+
