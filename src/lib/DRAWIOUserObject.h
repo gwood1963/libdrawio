@@ -12,7 +12,7 @@ namespace libdrawio {
     librevenge::RVNGString label;
     std::map<librevenge::RVNGString, librevenge::RVNGString> data;
     DRAWIOUserObject() : label(), data() {}
-    DRAWIOUserObject(librevenge::RVNGString label) : label(label), data() {}
+    DRAWIOUserObject(librevenge::RVNGString text) : label(text), data() {}
     DRAWIOUserObject(const DRAWIOUserObject &obj) = default;
     DRAWIOUserObject &operator=(const DRAWIOUserObject &obj) = default;
   };

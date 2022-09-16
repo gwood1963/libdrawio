@@ -9,7 +9,6 @@ namespace libdrawio {
   struct MXPoint {
     double x, y;
     MXPoint() : x(), y() {}
-    MXPoint(double x, double y) : x(x), y(y) {}
     MXPoint(const MXPoint &mxpoint) = default;
     MXPoint &operator=(const MXPoint &mxpoint) = default;
   };

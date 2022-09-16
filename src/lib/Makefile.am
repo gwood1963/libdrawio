@@ -17,19 +17,40 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/inc \
 	$(REVENGE_CFLAGS) \
 	$(REVENGE_STREAM_CFLAGS) \
+        $(LIBXML_CFLAGS) \
 	$(BOOST_CFLAGS) \
 	$(DEBUG_CXXFLAGS)
 
 libdrawio_@DRAWIO_MAJOR_VERSION@_@DRAWIO_MINOR_VERSION@_la_LIBADD = \
 	$(REVENGE_LIBS) \
+	$(REVENGE_STREAM_LIBS) \
+	$(LIBXML_LIBS) \
 	@LIBDRAWIO_WIN32_RESOURCE@
 
 libdrawio_@DRAWIO_MAJOR_VERSION@_@DRAWIO_MINOR_VERSION@_la_DEPENDENCIES = @LIBDRAWIO_WIN32_RESOURCE@
 libdrawio_@DRAWIO_MAJOR_VERSION@_@DRAWIO_MINOR_VERSION@_la_LDFLAGS = $(version_info) -export-dynamic -no-undefined
 libdrawio_@DRAWIO_MAJOR_VERSION@_@DRAWIO_MINOR_VERSION@_la_SOURCES = \
 	DRAWIODocument.cpp \
+	DRAWIOPage.cpp \
+	DRAWIOPage.h \
+	DRAWIOParser.cpp \
+	DRAWIOParser.h \
+	DRAWIOShapeList.cpp \
+	DRAWIOShapeList.h \
+	DRAWIOStyle.h \
+	DRAWIOTokenMap.cpp \
+	DRAWIOTokenMap.h \
+	DRAWIOTypes.h \
+	DRAWIOUserObject.h \
 	libdrawio_utils.cpp \
-	libdrawio_utils.h
+	libdrawio_utils.h \
+	libdrawio_xml.cpp \
+	libdrawio_xml.h \
+	MXCell.cpp \
+	MXCell.h \
+	MXGeometry.h \
+	tokenhash.h \
+	tokens.h
 
 if OS_WIN32
 

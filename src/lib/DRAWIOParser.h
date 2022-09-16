@@ -63,6 +63,9 @@ namespace libdrawio {
     bool m_in_points_list;
     unsigned m_current_level;
     XMLErrorWatcher *m_watcher;
+
+    DRAWIOParser(const DRAWIOParser &parser);
+    DRAWIOParser &operator=(const DRAWIOParser &parser);
   };
 }
 

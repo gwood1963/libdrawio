@@ -5,7 +5,7 @@
 
 #include "DRAWIOTypes.h"
 #include "librevenge-stream/RVNGStream.h"
-#include "libxml/xmlstring.h"
+#include <libxml/xmlstring.h>
 #include <libxml/xmlreader.h>
 #include <memory>
 

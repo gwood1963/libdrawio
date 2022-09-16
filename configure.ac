@@ -1,7 +1,7 @@
 dnl -*- Mode: Autoconf; tab-width: 4; indent-tabs-mode: nil; fill-column: 102 -*-
 # Process this file with autoconf to create configure.
 
-AC_PREREQ([2.71])
+AC_PREREQ([2.65])
 
 # ====================
 # Version informations
@@ -45,6 +45,10 @@ PKG_PROG_PKG_CONFIG([0.20])
 # ====================
 PKG_CHECK_MODULES([REVENGE],[
     librevenge-0.0
+])
+
+PKG_CHECK_MODULES([LIBXML],[
+    libxml-2.0
 ])
 
 # ==================
@@ -195,6 +199,10 @@ AS_IF([test "x$native_win32" = "xyes"], [
         ])
     ])
 ])
+LIBDRAWIO_CXXFLAGS="${REVENGE_CFLAGS} ${LIBXML_CFLAGS} ${ICU_CFLAGS}"
+LIBDRAWIO_LIBS="${REVENGE_LIBS} ${LIBXML_LIBS} $ICU_LIBS}"
+AC_SUBST(LIBDRAWIO_CXXFLAGS)
+AC_SUBST(LIBDRAWIO_LIBS)
 AC_SUBST(DEBUG_CXXFLAGS)
 
 # ============
@@ -228,6 +236,24 @@ AS_IF([test "x$enable_tests" = "xyes"], [
 AC_SUBST([CPPUNIT_CFLAGS])
 AC_SUBST([CPPUNIT_LIBS])
 AM_CONDITIONAL(WITH_TESTS, [test "x$enable_tests" = "xyes"])
+
+AS_IF([test "x$enable_tests" = "xyes"], [need_stream=yes])
+
+AS_IF([test "x$need_stream" = "xyes"], [
+	PKG_CHECK_MODULES([REVENGE_STREAM],[
+		librevenge-stream-0.0
+	])
+])
+AC_SUBST([REVENGE_STREAM_CFLAGS])
+AC_SUBST([REVENGE_STREAM_LIBS])
+
+AS_IF([test "x$need_generators" = "xyes"], [
+	PKG_CHECK_MODULES([REVENGE_GENERATORS],[
+		librevenge-generators-0.0
+	])
+])
+AC_SUBST([REVENGE_GENERATORS_CFLAGS])
+AC_SUBST([REVENGE_GENERATORS_LIBS])
 
 # =============
 # Documentation
