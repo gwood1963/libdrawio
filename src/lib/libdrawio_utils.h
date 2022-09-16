@@ -10,6 +10,9 @@
 #ifndef INCLUDED_LIBDRAWIO_UTILS_H
 #define INCLUDED_LIBDRAWIO_UTILS_H
 
+#include "librevenge/RVNGString.h"
+#include <unicode/umachine.h>
+#include <unicode/utf8.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -94,6 +97,8 @@ void seekRelative(std::shared_ptr<librevenge::RVNGInputStream> input, long pos);
 
 unsigned long getLength(std::shared_ptr<librevenge::RVNGInputStream> input);
 
+void appendUCS4(librevenge::RVNGString &text, UChar32 ucs4Character);
+
 class EndOfStreamException
 {
 public:
@@ -117,6 +122,10 @@ class PackageError
 class ParseError
 {
 };
+
+class XmlParserException
+{
+};    
 
 class PasswordMismatch
 {

@@ -5,25 +5,28 @@
 
 #include "MXGeometry.h"
 #include "DRAWIOUserObject.h"
+#include "librevenge/RVNGDrawingInterface.h"
+#include "librevenge/RVNGString.h"
 #include <string>
 #include <vector>
 
 namespace libdrawio {
   struct MXCell {
-    std::string id;
+    librevenge::RVNGString id;
     DRAWIOUserObject data;
     MXGeometry geometry;
-    std::string style;
+    librevenge::RVNGString style;
     bool vertex, edge, connectable, visible, collapsed;
-    std::string parent, source, target;
-    std::vector<std::string> children; // holds references to child cells
-    std::vector<std::string> edges; // holds references to connected edges
+    librevenge::RVNGString parent, source, target;
+    std::vector<librevenge::RVNGString> children; // holds references to child cells
+    std::vector<librevenge::RVNGString> edges; // holds references to connected edges
     MXCell()
       : id(), data(), geometry(), style(), vertex(), edge(), connectable(),
         visible(), collapsed(), parent(), source(), target(), children(),
         edges() {}
     MXCell(const MXCell &mxcell) = default;
     MXCell &operator=(const MXCell &mxcell) = default;
+    void draw(librevenge::RVNGDrawingInterface *painter);
   };
 }
 

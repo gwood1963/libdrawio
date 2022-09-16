@@ -7,17 +7,18 @@
 
 namespace libdrawio {
   struct MXPoint {
-    int x, y; // drawio only allows integer coordinates/lengths
+    double x, y;
     MXPoint() : x(), y() {}
+    MXPoint(double x, double y) : x(x), y(y) {}
     MXPoint(const MXPoint &mxpoint) = default;
     MXPoint &operator=(const MXPoint &mxpoint) = default;
   };
 
   struct MXGeometry {
-    int x, y, width, height; // drawio only allows integer coordinates/lengths
+    double x, y, width, height;
     MXPoint sourcePoint, targetPoint;
     std::vector<MXPoint> points;
-    int offset;
+    double offset;
     bool relative;
     MXGeometry()
       : x(), y(), width(), height(), sourcePoint(), targetPoint(),

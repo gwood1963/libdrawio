@@ -3,6 +3,7 @@
 #ifndef DRAWIOTYPES_H
 #define DRAWIOTYPES_H
 
+#include "librevenge/RVNGBinaryData.h"
 namespace libdrawio {
   enum Direction {
     NORTH,
@@ -41,6 +42,44 @@ namespace libdrawio {
     inline bool operator!() const {
       return (!r && !g && !b && !a);
     }
+  };
+
+  enum TextFormat {
+    DRAWIO_TEXT_ANSI = 0,
+    DRAWIO_TEXT_SYMBOL,
+    DRAWIO_TEXT_GREEK,
+    DRAWIO_TEXT_TURKISH,
+    DRAWIO_TEXT_VIETNAMESE,
+    DRAWIO_TEXT_HEBREW,
+    DRAWIO_TEXT_ARABIC,
+    DRAWIO_TEXT_BALTIC,
+    DRAWIO_TEXT_RUSSIAN,
+    DRAWIO_TEXT_THAI,
+    DRAWIO_TEXT_CENTRAL_EUROPE,
+    DRAWIO_TEXT_JAPANESE,
+    DRAWIO_TEXT_KOREAN,
+    DRAWIO_TEXT_CHINESE_SIMPLIFIED,
+    DRAWIO_TEXT_CHINESE_TRADITIONAL,
+    DRAWIO_TEXT_UTF8,
+    DRAWIO_TEXT_UTF16
+  };
+
+  class DRAWIOName {
+  public:
+    DRAWIOName(const librevenge::RVNGBinaryData &data, TextFormat format)
+      : m_data(data), m_format(format) {}
+    DRAWIOName() : m_data(), m_format(DRAWIO_TEXT_ANSI) {}
+    DRAWIOName(const DRAWIOName &name) = default;
+    DRAWIOName &operator=(const DRAWIOName &name) = default;
+    bool empty() const {
+      return !m_data.size();
+    }
+    void clear() {
+      m_data.clear();
+      m_format = DRAWIO_TEXT_ANSI;
+    }
+    librevenge::RVNGBinaryData m_data;
+    TextFormat m_format;
   };
 }
 

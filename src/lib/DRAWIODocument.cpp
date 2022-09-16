@@ -15,7 +15,12 @@
 
 #include <libdrawio/libdrawio.h>
 
+#include "DRAWIOParser.h"
 #include "libdrawio_utils.h"
+#include "libdrawio_xml.h"
+#include "librevenge-stream/RVNGStream.h"
+#include "libxml/xmlreader.h"
+#include "libxml/xmlstring.h"
 
 using librevenge::RVNGInputStream;
 
@@ -27,10 +32,36 @@ namespace libdrawio
 
 DRAWIOAPI DRAWIODocument::Confidence DRAWIODocument::isSupported(librevenge::RVNGInputStream *const input, Type *const type) try
 {
-  if (type)
+  input->seek(0, librevenge::RVNG_SEEK_SET);
+  auto reader = libdrawio::xmlReaderForStream(input);
+  if (!reader) {
     *type = TYPE_UNKNOWN;
-
-  return CONFIDENCE_NONE;
+    return CONFIDENCE_NONE;
+  }
+  int ret = xmlTextReaderRead(reader.get());
+  while (ret == 1 && xmlTextReaderNodeType(reader.get()))
+    ret = xmlTextReaderRead(reader.get());
+  if (ret != 1) {
+    *type = TYPE_UNKNOWN;
+    return CONFIDENCE_NONE;
+  }
+  const xmlChar *name = xmlTextReaderConstName(reader.get());
+  if (!name || !xmlStrEqual(name, BAD_CAST("mxfile"))) {
+    *type = TYPE_UNKNOWN;
+    return CONFIDENCE_NONE;
+  }
+  std::shared_ptr<xmlChar>
+    compressed(xmlTextReaderGetAttribute(reader.get(), BAD_CAST("compressed")), xmlFree);
+  if (!compressed) {
+    *type = TYPE_UNKNOWN;
+    return CONFIDENCE_NONE;
+  } else if (xmlStringToBool(compressed.get())) {
+    *type = TYPE_DRAWIO_COMPRESSED;
+    return CONFIDENCE_SUPPORTED_ENCRYPTION;
+  } else {
+    *type = TYPE_DRAWIO;
+    return CONFIDENCE_EXCELLENT;
+  }
 }
 catch (...)
 {
@@ -56,12 +87,13 @@ DRAWIOAPI DRAWIODocument::Result DRAWIODocument::parse(librevenge::RVNGInputStre
   // sanity check
   if (DRAWIODocument::TYPE_UNKNOWN == type)
     return DRAWIODocument::RESULT_UNSUPPORTED_FORMAT;
-  if (DRAWIODocument::TYPE_RESERVED1 <= type)
-    return DRAWIODocument::RESULT_UNSUPPORTED_FORMAT;
 
   const std::shared_ptr<RVNGInputStream> input_(input, DRAWIODummyDeleter());
 
   input_->seek(0, librevenge::RVNG_SEEK_SET);
+  libdrawio::DRAWIOParser parser(input, document);
+  if (parser.parseMain())
+    return RESULT_OK;
 
   return RESULT_UNKNOWN_ERROR;
 }

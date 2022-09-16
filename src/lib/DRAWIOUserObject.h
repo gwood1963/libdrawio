@@ -3,14 +3,16 @@
 #ifndef DRAWIOUSEROBJECT_H
 #define DRAWIOUSEROBJECT_H
 
+#include "librevenge/RVNGString.h"
 #include <string>
 #include <map>
 
 namespace libdrawio {
   struct DRAWIOUserObject {
-    std::string label;
-    std::map<std::string, std::string> data;
+    librevenge::RVNGString label;
+    std::map<librevenge::RVNGString, librevenge::RVNGString> data;
     DRAWIOUserObject() : label(), data() {}
+    DRAWIOUserObject(librevenge::RVNGString label) : label(label), data() {}
     DRAWIOUserObject(const DRAWIOUserObject &obj) = default;
     DRAWIOUserObject &operator=(const DRAWIOUserObject &obj) = default;
   };

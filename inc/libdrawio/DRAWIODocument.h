@@ -65,8 +65,8 @@ public:
   {
     TYPE_UNKNOWN, //< unrecognized file
 
-    TYPE_RESERVED1, //< reserved for future use
-    TYPE_RESERVED2, //< reserved for future use
+    TYPE_DRAWIO,
+    TYPE_DRAWIO_COMPRESSED,
     TYPE_RESERVED3, //< reserved for future use
     TYPE_RESERVED4, //< reserved for future use
     TYPE_RESERVED5, //< reserved for future use

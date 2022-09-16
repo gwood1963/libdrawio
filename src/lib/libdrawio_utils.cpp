@@ -252,6 +252,20 @@ EndOfStreamException::EndOfStreamException()
   DRAWIO_DEBUG_MSG(("Throwing EndOfStreamException\n"));
 }
 
+void appendUCS4(librevenge::RVNGString &text, UChar32 ucs4Character)
+{
+  // Convert carriage returns to new line characters
+  if (ucs4Character == (UChar32) 0x0d || ucs4Character == (UChar32) 0x0e)
+    ucs4Character = (UChar32) '\n';
+
+  unsigned char outbuf[U8_MAX_LENGTH+1];
+  int i = 0;
+  U8_APPEND_UNSAFE(&outbuf[0], i, ucs4Character);
+  outbuf[i] = 0;
+
+  text.append((char *)outbuf);
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
