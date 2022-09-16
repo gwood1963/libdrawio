@@ -4,7 +4,7 @@
 #define LIBDRAWIO_XML_H
 
 #include "DRAWIOTypes.h"
-#include "librevenge-stream/RVNGStream.h"
+#include "librevenge-stream/librevenge-stream.h"
 #include <libxml/xmlstring.h>
 #include <libxml/xmlreader.h>
 #include <memory>

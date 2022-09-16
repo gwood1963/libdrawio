@@ -21,16 +21,16 @@ namespace {
       auto *input = (librevenge::RVNGInputStream *)context;
 
       if ((!input) || (!buffer) || (len < 0))
-	return -1;
+        return -1;
 
       if (input->isEnd())
-	return 0;
+        return 0;
 
       unsigned long tmpNumBytesRead = 0;
       const unsigned char *tmpBuffer = input->read(len, tmpNumBytesRead);
 
       if (tmpBuffer && tmpNumBytesRead)
-	memcpy(buffer, tmpBuffer, tmpNumBytesRead);
+        memcpy(buffer, tmpBuffer, tmpNumBytesRead);
       return tmpNumBytesRead;
     }
     
@@ -83,7 +83,7 @@ namespace libdrawio {
   
   std::unique_ptr<xmlTextReader, void (*)(xmlTextReaderPtr)>
   xmlReaderForStream(librevenge::RVNGInputStream *input,
-		     XMLErrorWatcher *const watcher, bool recover) {
+                     XMLErrorWatcher *const watcher, bool recover) {
     int options = XML_PARSE_NOBLANKS | XML_PARSE_NONET;
     if (recover)
       options |= XML_PARSE_RECOVER;

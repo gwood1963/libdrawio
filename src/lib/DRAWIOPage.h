@@ -5,8 +5,7 @@
 
 #include "DRAWIOShapeList.h"
 #include "MXCell.h"
-#include "librevenge/RVNGDrawingInterface.h"
-#include "librevenge/RVNGString.h"
+#include "librevenge/librevenge.h"
 #include <string>
 
 namespace libdrawio {

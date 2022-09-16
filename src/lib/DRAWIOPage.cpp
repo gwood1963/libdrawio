@@ -1,8 +1,7 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
 #include "DRAWIOPage.h"
-#include "librevenge/RVNGPropertyList.h"
-#include "librevenge/RVNGString.h"
+#include "librevenge/librevenge.h"
 
 namespace libdrawio {
   void DRAWIOPage::draw(librevenge::RVNGDrawingInterface *painter) {

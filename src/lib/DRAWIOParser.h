@@ -9,10 +9,8 @@
 #include "MXCell.h"
 #include "MXGeometry.h"
 #include "libdrawio_xml.h"
-#include "librevenge-stream/RVNGStream.h"
-#include "librevenge/RVNGBinaryData.h"
-#include "librevenge/RVNGDrawingInterface.h"
-#include "librevenge/RVNGString.h"
+#include "librevenge-stream/librevenge-stream.h"
+#include "librevenge/librevenge.h"
 #include <libxml/xmlreader.h>
 #include <vector>
 

@@ -5,8 +5,7 @@
 
 #include "MXGeometry.h"
 #include "DRAWIOUserObject.h"
-#include "librevenge/RVNGDrawingInterface.h"
-#include "librevenge/RVNGString.h"
+#include "librevenge/librevenge.h"
 #include <string>
 #include <vector>
 

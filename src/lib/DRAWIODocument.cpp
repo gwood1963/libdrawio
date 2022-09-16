@@ -18,13 +18,13 @@
 #include "DRAWIOParser.h"
 #include "libdrawio_utils.h"
 #include "libdrawio_xml.h"
-#include "librevenge-stream/RVNGStream.h"
+#include "librevenge-stream/librevenge-stream.h"
 #include "libxml/xmlreader.h"
 #include "libxml/xmlstring.h"
 
 using librevenge::RVNGInputStream;
 
-using std::equal;
+// using std::equal;
 using std::shared_ptr;
 
 namespace libdrawio

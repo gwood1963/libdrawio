@@ -3,14 +3,13 @@
 #include "DRAWIOParser.h"
 #include "DRAWIOPage.h"
 #include "DRAWIOTypes.h"
+#include "DRAWIOUserObject.h"
 #include "MXCell.h"
 #include "MXGeometry.h"
 #include "libdrawio_utils.h"
-#include "librevenge-stream/RVNGStream.h"
-#include "librevenge/RVNGBinaryData.h"
-#include "librevenge/RVNGDrawingInterface.h"
+#include "librevenge-stream/librevenge-stream.h"
+#include "librevenge/librevenge.h"
 #include "libdrawio_xml.h"
-#include "librevenge/RVNGString.h"
 #include "libxml/globals.h"
 #include "libxml/xmlreader.h"
 #include "DRAWIOTokenMap.h"
@@ -27,6 +26,8 @@ namespace libdrawio {
 			     librevenge::RVNGDrawingInterface *painter)
     : m_input(input), m_painter(painter), m_value(), m_cell(), m_geometry(),
       m_point(), m_current_page() {}
+
+  DRAWIOParser::~DRAWIOParser() {}
 
   bool DRAWIOParser::parseMain() {
     if (!m_input)
@@ -146,6 +147,21 @@ namespace libdrawio {
     m_geometryStarted = false;
   }
 
+  void DRAWIOParser::_readObject(xmlTextReaderPtr reader) {
+    m_objectStarted = true;
+    m_value = DRAWIOUserObject();
+
+    const shared_ptr<xmlChar>
+      label(xmlTextReaderGetAttribute(reader, BAD_CAST("label")), xmlFree);
+
+    if (label) {
+      DRAWIOName labelName =
+        DRAWIOName(librevenge::RVNGBinaryData(label.get(), xmlStrlen(label.get())),
+                   DRAWIO_TEXT_UTF8);
+      _convertDataToString(m_value.label, labelName.m_data, labelName.m_format);
+    }
+  }
+
   void DRAWIOParser::_readCell(xmlTextReaderPtr reader) {
     m_cell = MXCell();
     m_cellStarted = true;
@@ -179,9 +195,10 @@ namespace libdrawio {
                    DRAWIO_TEXT_UTF8);
       _convertDataToString(m_cell.id, idName.m_data, idName.m_format);
     }
-    if (m_objectStarted)
+    if (m_objectStarted) {
       m_cell.data = m_value;
-    else if (value) {
+      m_objectStarted = false;
+    } else if (value) {
       DRAWIOName valueName =
         DRAWIOName(librevenge::RVNGBinaryData(value.get(), xmlStrlen(value.get())),
                    DRAWIO_TEXT_UTF8);
