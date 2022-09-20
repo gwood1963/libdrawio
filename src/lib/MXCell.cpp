@@ -9,6 +9,10 @@ namespace libdrawio {
   void MXCell::draw(librevenge::RVNGDrawingInterface *painter) {
     if (edge) {
       librevenge::RVNGPropertyList propList;
+      if (!id.empty()) {
+        propList.insert("draw:id", id);
+        propList.insert("xml:id", id);
+      }
       if (!source.empty()) {
         propList.insert("draw:start-shape", source);
       }
@@ -23,7 +27,8 @@ namespace libdrawio {
     } else if (vertex) {
       librevenge::RVNGPropertyList propList;
       if (!id.empty()) {
-	propList.insert("draw:id", id);
+        propList.insert("draw:id", id);
+        propList.insert("xml:id", id);
       }
       propList.insert("svg:x", geometry.x / 100.);
       propList.insert("svg:y", geometry.y / 100.);

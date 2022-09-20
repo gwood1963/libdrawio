@@ -10,8 +10,10 @@ namespace libdrawio {
     propList.insert("svg:height", height / 100.);
     propList.insert("draw:name", name);
     propList.insert("draw:id", id);
+    propList.insert("xml:id", id);
     painter->startPage(propList);
     elements.draw(painter);
+    painter->endPage();
   }
 
   void DRAWIOPage::insert(MXCell cell) {

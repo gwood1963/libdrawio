@@ -39,7 +39,7 @@ DRAWIOAPI DRAWIODocument::Confidence DRAWIODocument::isSupported(librevenge::RVN
     return CONFIDENCE_NONE;
   }
   int ret = xmlTextReaderRead(reader.get());
-  while (ret == 1 && xmlTextReaderNodeType(reader.get()))
+  while (ret == 1 && xmlTextReaderNodeType(reader.get()) != 1)
     ret = xmlTextReaderRead(reader.get());
   if (ret != 1) {
     *type = TYPE_UNKNOWN;

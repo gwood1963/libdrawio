@@ -8,6 +8,7 @@
 #include "MXGeometry.h"
 #include "libdrawio_utils.h"
 #include "librevenge-stream/librevenge-stream.h"
+#include "librevenge/RVNGPropertyList.h"
 #include "librevenge/librevenge.h"
 #include "libdrawio_xml.h"
 #include "libxml/globals.h"
@@ -71,7 +72,7 @@ namespace libdrawio {
     case XML_DIAGRAM:
       if (tokenType == XML_READER_TYPE_ELEMENT)
         _startPage(reader);
-      else if (tokenType == XML_READER_TYPE_END_ELEMENT)
+      if (tokenType == XML_READER_TYPE_END_ELEMENT)
         _endPage();
       break;
     case XML_MXGRAPHMODEL:
@@ -81,13 +82,14 @@ namespace libdrawio {
     case XML_MXCELL:
       if (tokenType == XML_READER_TYPE_ELEMENT)
         _readCell(reader);
-      else if (tokenType == XML_READER_TYPE_END_ELEMENT)
+      if (tokenType == XML_READER_TYPE_END_ELEMENT)
         _flushCell();
       break;
     case XML_MXGEOMETRY:
       if (tokenType == XML_READER_TYPE_ELEMENT)
         _readGeometry(reader);
-      else if (tokenType == XML_READER_TYPE_END_ELEMENT)
+      if (tokenType == XML_READER_TYPE_END_ELEMENT
+          || xmlTextReaderIsEmptyElement(reader))
         _flushGeometry();
       break;
     case XML_MXPOINT:
@@ -97,8 +99,12 @@ namespace libdrawio {
     case XML_ARRAY:
       if (tokenType == XML_READER_TYPE_ELEMENT)
         m_in_points_list = true;
-      else if (tokenType == XML_READER_TYPE_END_ELEMENT)
+      if (tokenType == XML_READER_TYPE_END_ELEMENT)
         m_in_points_list = false;
+      break;
+    case XML_MXFILE:
+      if (tokenType == XML_READER_TYPE_END_ELEMENT)
+        _endDocument();
       break;
     default:
       break;
@@ -133,12 +139,18 @@ namespace libdrawio {
     const shared_ptr<xmlChar> offset(xmlTextReaderGetAttribute(reader, BAD_CAST("offset")), xmlFree);
     const shared_ptr<xmlChar> relative(xmlTextReaderGetAttribute(reader, BAD_CAST("relative")), xmlFree);
 
-    m_geometry.x = xmlStringToDouble(x.get());
-    m_geometry.y = xmlStringToDouble(y.get());
-    m_geometry.width = xmlStringToDouble(width.get());
-    m_geometry.height = xmlStringToDouble(height.get());
-    m_geometry.offset = xmlStringToDouble(offset.get());
-    m_geometry.relative = xmlStringToBool(relative.get());
+    if (x)
+      m_geometry.x = xmlStringToDouble(x.get());
+    if (y)
+      m_geometry.y = xmlStringToDouble(y.get());
+    if (width)
+      m_geometry.width = xmlStringToDouble(width.get());
+    if (height)
+      m_geometry.height = xmlStringToDouble(height.get());
+    if (offset)
+      m_geometry.offset = xmlStringToDouble(offset.get());
+    if (relative)
+      m_geometry.relative = xmlStringToBool(relative.get());
   }
 
   void DRAWIOParser::_flushGeometry() {
@@ -294,9 +306,11 @@ namespace libdrawio {
   }
 
   void DRAWIOParser::_endDocument() {
+    m_painter -> startDocument(librevenge::RVNGPropertyList());
     for (auto page : m_pages) {
       page.draw(m_painter);
     }
+    m_painter->endDocument();
   }
 
   xmlChar *DRAWIOParser::_readStringData(xmlTextReaderPtr reader) {
