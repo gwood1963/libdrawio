@@ -3,8 +3,10 @@
 #ifndef MXCELL_H
 #define MXCELL_H
 
+#include "DRAWIOStyle.h"
 #include "MXGeometry.h"
 #include "DRAWIOUserObject.h"
+#include "librevenge/RVNGString.h"
 #include "librevenge/librevenge.h"
 #include <string>
 #include <vector>
@@ -14,18 +16,31 @@ namespace libdrawio {
     librevenge::RVNGString id;
     DRAWIOUserObject data;
     MXGeometry geometry;
-    librevenge::RVNGString style;
+    librevenge::RVNGString style_str;
+    void setStyle();
+    DRAWIOStyle style;
     bool vertex, edge, connectable, visible, collapsed;
-    librevenge::RVNGString parent, source, target;
+    librevenge::RVNGString parent_id, source_id, target_id;
     std::vector<librevenge::RVNGString> children; // holds references to child cells
     std::vector<librevenge::RVNGString> edges; // holds references to connected edges
     MXCell()
       : id(), data(), geometry(), style(), vertex(), edge(), connectable(),
-        visible(), collapsed(), parent(), source(), target(), children(),
+        visible(), collapsed(), parent_id(), source_id(), target_id(), children(),
         edges() {}
     MXCell(const MXCell &mxcell) = default;
     MXCell &operator=(const MXCell &mxcell) = default;
-    void draw(librevenge::RVNGDrawingInterface *painter);
+    void draw(librevenge::RVNGDrawingInterface *painter,
+              std::map<librevenge::RVNGString, MXCell> id_map);
+    void setEndPoints(std::map<librevenge::RVNGString, MXCell> id_map);
+  private:
+    struct Bounds {
+      int x, y;
+      int width, height;
+    };
+    void calculateBounds();
+    Bounds bounds;
+    std::string getViewBox();
+    librevenge::RVNGPropertyListVector getPath();
   };
 }
 

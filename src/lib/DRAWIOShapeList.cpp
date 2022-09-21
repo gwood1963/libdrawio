@@ -3,9 +3,10 @@
 #include "DRAWIOShapeList.h"
 
 namespace libdrawio {
-  void DRAWIOShapeList::draw(librevenge::RVNGDrawingInterface *painter) {
+  void DRAWIOShapeList::draw(librevenge::RVNGDrawingInterface *painter,
+                             std::map<librevenge::RVNGString, MXCell> id_map) {
     for (auto shape : shapes) {
-      shape.draw(painter);
+      shape.draw(painter, id_map);
     }
   }
 

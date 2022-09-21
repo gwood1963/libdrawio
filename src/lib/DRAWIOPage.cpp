@@ -4,7 +4,8 @@
 #include "librevenge/librevenge.h"
 
 namespace libdrawio {
-  void DRAWIOPage::draw(librevenge::RVNGDrawingInterface *painter) {
+  void DRAWIOPage::draw(librevenge::RVNGDrawingInterface *painter,
+                        std::map<librevenge::RVNGString, MXCell> id_map) {
     librevenge::RVNGPropertyList propList;
     propList.insert("svg:width", width / 100.);
     propList.insert("svg:height", height / 100.);
@@ -12,7 +13,7 @@ namespace libdrawio {
     propList.insert("draw:id", id);
     propList.insert("xml:id", id);
     painter->startPage(propList);
-    elements.draw(painter);
+    elements.draw(painter, id_map);
     painter->endPage();
   }
 

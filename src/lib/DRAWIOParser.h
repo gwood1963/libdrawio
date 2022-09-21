@@ -10,8 +10,10 @@
 #include "MXGeometry.h"
 #include "libdrawio_xml.h"
 #include "librevenge-stream/librevenge-stream.h"
+#include "librevenge/RVNGString.h"
 #include "librevenge/librevenge.h"
 #include <libxml/xmlreader.h>
+#include <map>
 #include <vector>
 
 namespace libdrawio {
@@ -61,6 +63,7 @@ namespace libdrawio {
     bool m_in_points_list;
     unsigned m_current_level;
     XMLErrorWatcher *m_watcher;
+    std::map<librevenge::RVNGString, MXCell> m_id_map;
 
     DRAWIOParser(const DRAWIOParser &parser);
     DRAWIOParser &operator=(const DRAWIOParser &parser);

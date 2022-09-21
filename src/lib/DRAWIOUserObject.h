@@ -10,6 +10,7 @@
 namespace libdrawio {
   struct DRAWIOUserObject {
     librevenge::RVNGString label;
+    librevenge::RVNGString id;
     std::map<librevenge::RVNGString, librevenge::RVNGString> data;
     DRAWIOUserObject() : label(), data() {}
     DRAWIOUserObject(librevenge::RVNGString text) : label(text), data() {}

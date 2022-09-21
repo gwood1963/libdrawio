@@ -5,6 +5,8 @@
 
 #include "MXCell.h"
 #include "librevenge/RVNGDrawingInterface.h"
+#include "librevenge/RVNGString.h"
+#include <map>
 #include <vector>
 
 namespace libdrawio {
@@ -14,7 +16,8 @@ namespace libdrawio {
     DRAWIOShapeList(const DRAWIOShapeList &list) = default;
     DRAWIOShapeList &operator=(const DRAWIOShapeList &list) = default;
     void append(MXCell cell);
-    void draw(librevenge::RVNGDrawingInterface *painter);
+    void draw(librevenge::RVNGDrawingInterface *painter,
+              std::map<librevenge::RVNGString, MXCell> id_map);
   private:
     std::vector<MXCell> shapes;
   };

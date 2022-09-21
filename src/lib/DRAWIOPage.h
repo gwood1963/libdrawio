@@ -5,8 +5,10 @@
 
 #include "DRAWIOShapeList.h"
 #include "MXCell.h"
+#include "librevenge/RVNGString.h"
 #include "librevenge/librevenge.h"
 #include <string>
+#include <map>
 
 namespace libdrawio {
   class DRAWIOPage {
@@ -16,7 +18,8 @@ namespace libdrawio {
     DRAWIOPage &operator=(const DRAWIOPage &page) = default;
     librevenge::RVNGString name, id;
     int width, height;
-    void draw(librevenge::RVNGDrawingInterface *painter);
+    void draw(librevenge::RVNGDrawingInterface *painter,
+              std::map<librevenge::RVNGString, MXCell> id_map);
     void insert(MXCell cell);
   private:
     DRAWIOShapeList elements;

@@ -172,6 +172,16 @@ namespace libdrawio {
                    DRAWIO_TEXT_UTF8);
       _convertDataToString(m_value.label, labelName.m_data, labelName.m_format);
     }
+
+    const shared_ptr<xmlChar>
+      id(xmlTextReaderGetAttribute(reader, BAD_CAST("id")), xmlFree);
+
+    if (id) {
+      DRAWIOName idName =
+        DRAWIOName(librevenge::RVNGBinaryData(id.get(), xmlStrlen(id.get())),
+                   DRAWIO_TEXT_UTF8);
+      _convertDataToString(m_value.id, idName.m_data, idName.m_format);
+    }
   }
 
   void DRAWIOParser::_readCell(xmlTextReaderPtr reader) {
@@ -209,6 +219,7 @@ namespace libdrawio {
     }
     if (m_objectStarted) {
       m_cell.data = m_value;
+      m_cell.id = m_value.id;
       m_objectStarted = false;
     } else if (value) {
       DRAWIOName valueName =
@@ -220,25 +231,25 @@ namespace libdrawio {
       DRAWIOName styleName =
         DRAWIOName(librevenge::RVNGBinaryData(style.get(), xmlStrlen(style.get())),
                    DRAWIO_TEXT_UTF8);
-      _convertDataToString(m_cell.style, styleName.m_data, styleName.m_format);
+      _convertDataToString(m_cell.style_str, styleName.m_data, styleName.m_format);
     }
     if (source) {
       DRAWIOName sourceName =
         DRAWIOName(librevenge::RVNGBinaryData(source.get(), xmlStrlen(source.get())),
                    DRAWIO_TEXT_UTF8);
-      _convertDataToString(m_cell.source, sourceName.m_data, sourceName.m_format);
+      _convertDataToString(m_cell.source_id, sourceName.m_data, sourceName.m_format);
     }
     if (target) {
       DRAWIOName targetName =
         DRAWIOName(librevenge::RVNGBinaryData(target.get(), xmlStrlen(target.get())),
                    DRAWIO_TEXT_UTF8);
-      _convertDataToString(m_cell.target, targetName.m_data, targetName.m_format);
+      _convertDataToString(m_cell.target_id, targetName.m_data, targetName.m_format);
     }
     if (parent) {
       DRAWIOName parentName =
         DRAWIOName(librevenge::RVNGBinaryData(parent.get(), xmlStrlen(parent.get())),
                    DRAWIO_TEXT_UTF8);
-      _convertDataToString(m_cell.parent, parentName.m_data, parentName.m_format);
+      _convertDataToString(m_cell.parent_id, parentName.m_data, parentName.m_format);
     }
     if (edge)
       m_cell.edge = xmlStringToBool(edge.get());
@@ -253,7 +264,9 @@ namespace libdrawio {
   }
 
   void DRAWIOParser::_flushCell() {
+    m_cell.setStyle();
     m_current_page.insert(m_cell);
+    m_id_map[m_cell.id] = m_cell;
     m_cellStarted = false;
   }
 
@@ -308,7 +321,7 @@ namespace libdrawio {
   void DRAWIOParser::_endDocument() {
     m_painter -> startDocument(librevenge::RVNGPropertyList());
     for (auto page : m_pages) {
-      page.draw(m_painter);
+      page.draw(m_painter, m_id_map);
     }
     m_painter->endDocument();
   }
