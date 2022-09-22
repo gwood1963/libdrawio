@@ -24,6 +24,12 @@ namespace libdrawio {
     BOTTOM
   };
 
+  enum Shape {
+    RECTANGLE,
+    ELLIPSE,
+    TRIANGLE
+  };
+
   struct Color {
     unsigned char r;
     unsigned char g;

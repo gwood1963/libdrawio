@@ -34,6 +34,8 @@ namespace libdrawio {
     boost::optional<Direction> portConstraint;
     boost::optional<Direction> sourcePortConstraint;
     boost::optional<Direction> targetPortConstraint;
+    Shape shape = RECTANGLE;
+    Direction direction = EAST;
   };
 }
 

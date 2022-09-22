@@ -2,6 +2,8 @@
 
 #include "MXCell.h"
 #include "DRAWIOTypes.h"
+#include "librevenge/RVNGPropertyList.h"
+#include "librevenge/RVNGPropertyListVector.h"
 #include "librevenge/librevenge.h"
 #include <boost/algorithm/string.hpp>
 #include <algorithm>
@@ -18,42 +20,97 @@ namespace libdrawio {
 
   void MXCell::draw(librevenge::RVNGDrawingInterface *painter,
                     std::map<librevenge::RVNGString, MXCell> id_map) {
-  if (edge) {
-    setEndPoints(id_map);
-    calculateBounds();
-    librevenge::RVNGPropertyList propList;
-    if (!id.empty()) {
-      propList.insert("draw:id", id);
-      propList.insert("xml:id", id);
-    }
-    if (!source_id.empty()) {
-      propList.insert("draw:start-shape", source_id);
-    }
-    if (!target_id.empty()) {
-      propList.insert("draw:end-shape", target_id);
-    }
-    propList.insert("svg:x1", geometry.sourcePoint.x / 100.);
-    propList.insert("svg:y1", geometry.sourcePoint.y / 100.);
-    propList.insert("svg:x2", geometry.targetPoint.x / 100.);
-    propList.insert("svg:y2", geometry.targetPoint.y / 100.);
+    if (edge) {
+      setEndPoints(id_map);
+      calculateBounds();
+      librevenge::RVNGPropertyList propList;
+      if (!id.empty()) {
+        propList.insert("draw:id", id);
+        propList.insert("xml:id", id);
+      }
+      if (!source_id.empty()) {
+        propList.insert("draw:start-shape", source_id);
+      }
+      if (!target_id.empty()) {
+        propList.insert("draw:end-shape", target_id);
+      }
+      propList.insert("svg:x1", geometry.sourcePoint.x / 100.);
+      propList.insert("svg:y1", geometry.sourcePoint.y / 100.);
+      propList.insert("svg:x2", geometry.targetPoint.x / 100.);
+      propList.insert("svg:y2", geometry.targetPoint.y / 100.);
+      
+      propList.insert("svg:d", getPath());
 
-    propList.insert("svg:d", getPath());
+      propList.insert("draw:display", "always");
 
-    propList.insert("draw:display", "always");
-
-    painter->drawConnector(propList);
-  } else if (vertex) {
-    librevenge::RVNGPropertyList propList;
-    if (!id.empty()) {
-      propList.insert("draw:id", id);
-      propList.insert("xml:id", id);
+      painter->drawConnector(propList);
+    } else if (vertex) {
+      librevenge::RVNGPropertyList propList;
+      if (!id.empty()) {
+        propList.insert("draw:id", id);
+        propList.insert("xml:id", id);
+      }
+      propList.insert("svg:x", geometry.x / 100.);
+      propList.insert("svg:y", geometry.y / 100.);
+      propList.insert("svg:width", geometry.width / 100.);
+      propList.insert("svg:height", geometry.height / 100.);
+      if (style.shape == RECTANGLE)
+        painter->drawRectangle(propList);
+      else if (style.shape == ELLIPSE)
+        painter->drawEllipse(propList);
+      else if (style.shape == TRIANGLE) {
+        librevenge::RVNGPropertyListVector points;
+        librevenge::RVNGPropertyList point;
+        switch (style.direction) {
+        case NORTH:
+          point.insert("svg:x", (geometry.x + geometry.width / 2) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          break;
+        case EAST:
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height / 2) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          break;
+        case SOUTH:
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width / 2) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          break;
+        case WEST:
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height / 2) / 100);
+          points.append(point); point.clear();
+          break;
+        }
+        propList.insert("svg:points", points);
+        painter->drawPolygon(propList);
+      }
     }
-    propList.insert("svg:x", geometry.x / 100.);
-    propList.insert("svg:y", geometry.y / 100.);
-    propList.insert("svg:width", geometry.width / 100.);
-    propList.insert("svg:height", geometry.height / 100.);
-    painter->drawRectangle(propList);
-  }
   }
 
   void MXCell::calculateBounds() {
@@ -126,6 +183,14 @@ namespace libdrawio {
       else if (it->second == "east") style.portConstraint = EAST;
       else if (it->second == "south") style.portConstraint = SOUTH;
       else if (it->second == "west") style.portConstraint = WEST;
+    }
+    it = style_m.find("ellipse"); if (it != style_m.end()) style.shape = ELLIPSE;
+    it = style_m.find("triangle"); if (it != style_m.end()) style.shape = TRIANGLE;
+    it = style_m.find("direction"); if (it != style_m.end()) {
+      if (it->second == "north") style.direction = NORTH;
+      else if (it->second == "east") style.direction = EAST;
+      else if (it->second == "south") style.direction = SOUTH;
+      else if (it->second == "west") style.direction = WEST;
     }
   }
 
