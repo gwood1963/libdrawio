@@ -195,6 +195,9 @@ namespace libdrawio {
   }
 
   void MXCell::setEndPoints(std::map<librevenge::RVNGString, MXCell> id_map) {
+    // calculates endpoints for an edge
+    // necessary because draw.io doesn't store endpoint coordinates
+    // if the edge is attached to a vertex.
     if (!edge) return;
     if (!source_id.empty()) {
       MXCell source = id_map[source_id];
@@ -214,6 +217,19 @@ namespace libdrawio {
           if (style.exitX == 0.5)
             style.exitY = (source.geometry.y < geometry.targetPoint.y) ? 1 : 0;
           else style.exitY = 0.5;
+        }
+        if (source.style.shape == TRIANGLE) {
+          // update exitX, exitY to connect with diagonal edges of triangle
+          switch (source.style.direction) {
+          case NORTH:
+          case SOUTH:
+            style.exitX = (style.exitX.get() == 1) ? 0.75 : 0.25;
+            break;
+          case EAST:
+          case WEST:
+            style.exitY = (style.exitY.get() == 1) ? 0.75 : 0.25;
+            break;
+          }
         }
       }
       geometry.sourcePoint.x =
@@ -239,6 +255,19 @@ namespace libdrawio {
           if (style.entryX == 0.5)
             style.entryY = (target.geometry.y < geometry.sourcePoint.y) ? 1 : 0;
           else style.entryY = 0.5;
+        }
+        if (target.style.shape == TRIANGLE) {
+          // update entryX, entryY to connect with diagonal edges of triangle
+          switch (target.style.direction) {
+          case NORTH:
+          case SOUTH:
+            style.entryX = (style.entryX.get() == 1) ? 0.75 : 0.25;
+            break;
+          case EAST:
+          case WEST:
+            style.entryY = (style.entryY.get() == 1) ? 0.75 : 0.25;
+            break;
+          }
         }
       }
       geometry.targetPoint.x =
