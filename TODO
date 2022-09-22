@@ -1,1 +1,14 @@
+* add support for more shapes
+  * add entry to Shape enum in DRAWIOTypes.h
+  * update MXCell::getStyle to detect new shape type
+  * update MXCell::draw to draw new shape (get path/points)
+  * update MXCell::setEndPoints to attach edges to new shape properly
+
+* add support for text labels
+
+* add different connector types
+
+* add end arrows for connectors
+
+* add style information to produced odg file (probably by calling OdgGenerator::setStyle)
 
