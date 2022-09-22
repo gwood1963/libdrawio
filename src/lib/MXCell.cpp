@@ -1,15 +1,18 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
 #include "MXCell.h"
+#include "DRAWIOTypes.h"
 #include "librevenge/librevenge.h"
 #include <boost/algorithm/string.hpp>
 #include <algorithm>
 #include <boost/algorithm/string/classification.hpp>
 #include <cmath>
 #include <map>
+#include <ostream>
 #include <string>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 namespace libdrawio {
 
@@ -106,23 +109,77 @@ namespace libdrawio {
       style.exitX = std::stod(it->second);
     it = style_m.find("exitY"); if (it != style_m.end())
       style.exitY = std::stod(it->second);
+    it = style_m.find("sourcePortConstraint"); if (it != style_m.end()) {
+      if (it->second == "north") style.sourcePortConstraint = NORTH;
+      else if (it->second == "east") style.sourcePortConstraint = EAST;
+      else if (it->second == "south") style.sourcePortConstraint = SOUTH;
+      else if (it->second == "west") style.sourcePortConstraint = WEST;
+    }
+    it = style_m.find("targetPortConstraint"); if (it != style_m.end()) {
+      if (it->second == "north") style.targetPortConstraint = NORTH;
+      else if (it->second == "east") style.targetPortConstraint = EAST;
+      else if (it->second == "south") style.targetPortConstraint = SOUTH;
+      else if (it->second == "west") style.targetPortConstraint = WEST;
+    }
+    it = style_m.find("PortConstraint"); if (it != style_m.end()) {
+      if (it->second == "north") style.portConstraint = NORTH;
+      else if (it->second == "east") style.portConstraint = EAST;
+      else if (it->second == "south") style.portConstraint = SOUTH;
+      else if (it->second == "west") style.portConstraint = WEST;
+    }
   }
 
   void MXCell::setEndPoints(std::map<librevenge::RVNGString, MXCell> id_map) {
     if (!edge) return;
     if (!source_id.empty()) {
       MXCell source = id_map[source_id];
+      if (!style.exitX.has_value() && !style.exitY.has_value()) {
+        if (!target_id.empty()) {
+          MXCell target = id_map.at(target_id);
+          style.exitX =
+            (source.geometry.x + source.geometry.width < target.geometry.x) ? 1 :
+            (source.geometry.x > target.geometry.x + target.geometry.width) ? 0 : 0.5;
+          if (style.exitX == 0.5)
+            style.exitY = (source.geometry.y < target.geometry.y) ? 1 : 0;
+          else style.exitY = 0.5;
+        } else { // target point specified
+          style.exitX =
+            (source.geometry.x < geometry.targetPoint.x) ? 1 :
+            (source.geometry.x > geometry.targetPoint.x) ? 0 : 0.5;
+          if (style.exitX == 0.5)
+            style.exitY = (source.geometry.y < geometry.targetPoint.y) ? 1 : 0;
+          else style.exitY = 0.5;
+        }
+      }
       geometry.sourcePoint.x =
-        source.geometry.x + (style.exitX * source.geometry.width);
+        source.geometry.x + (style.exitX.get() * source.geometry.width);
       geometry.sourcePoint.y =
-        source.geometry.y + (style.exitY * source.geometry.height);
+        source.geometry.y + (style.exitY.get() * source.geometry.height);
     }
     if (!target_id.empty()) {
       MXCell target = id_map[target_id];
+      if (!style.entryX.has_value() && !style.entryY.has_value()) {
+        if (!source_id.empty()) {
+          MXCell source = id_map.at(source_id);
+          style.entryX =
+            (target.geometry.x + target.geometry.width < source.geometry.x) ? 1 :
+            (target.geometry.x > source.geometry.x + source.geometry.width) ? 0 : 0.5;
+          if (style.entryX == 0.5)
+            style.entryY = (target.geometry.y < source.geometry.y) ? 1 : 0;
+          else style.entryY = 0.5;
+        } else { // source point specified
+          style.entryX =
+            (target.geometry.x < geometry.sourcePoint.x) ? 1 :
+            (target.geometry.x > geometry.sourcePoint.x) ? 0 : 0.5;
+          if (style.entryX == 0.5)
+            style.entryY = (target.geometry.y < geometry.sourcePoint.y) ? 1 : 0;
+          else style.entryY = 0.5;
+        }
+      }
       geometry.targetPoint.x =
-        target.geometry.x + (style.entryX * target.geometry.width);
-      geometry.sourcePoint.y =
-        target.geometry.y + (style.entryY * target.geometry.height);
+        target.geometry.x + (style.entryX.get() * target.geometry.width);
+      geometry.targetPoint.y =
+        target.geometry.y + (style.entryY.get() * target.geometry.height);
     }
   }
 } // namespace libdrawio

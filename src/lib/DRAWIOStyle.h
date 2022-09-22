@@ -4,27 +4,26 @@
 #define DRAWIOSTYLE_H
 
 #include <boost/optional.hpp>
-#include <boost/optional/optional.hpp>
 #include "DRAWIOTypes.h"
 
 namespace libdrawio {
   struct DRAWIOStyle {
     double opacity; // opacity in [0,100]
     bool orthogonal;
-    double entryX, entryY; // in [0,1]
-    double exitX, exitY; // same range as above
+    boost::optional<double> entryX, entryY; // in [0,1]
+    boost::optional<double> exitX, exitY; // same range as above
     bool wrapText;
     double rotation; // rotation in [0,360]
-    boost::optional<Color> fillColor;
+    boost::optional<Color> fillColor = Color(255, 255, 255, 1);
     double margin;
-    Color gradientColor;
+    boost::optional<Color> gradientColor;
     Direction gradientDirection;
-    boost::optional<Color> strokeColor;
+    boost::optional<Color> strokeColor = Color(0, 0, 0, 1);
     double strokeWidth;
-    AlignH align;
-    AlignV verticalAlign;
-    AlignH labelPosition;
-    AlignV verticalLabelPosition;
+    AlignH align = CENTER;
+    AlignV verticalAlign = MIDDLE;
+    AlignH labelPosition = CENTER;
+    AlignV verticalLabelPosition = MIDDLE;
     bool flipH, flipV;
     boost::optional<Color> labelBackgroundColor;
     boost::optional<Color> labelBorderColor;
@@ -32,6 +31,9 @@ namespace libdrawio {
     bool dashed;
     bool rounded;
     bool curved;
+    boost::optional<Direction> portConstraint;
+    boost::optional<Direction> sourcePortConstraint;
+    boost::optional<Direction> targetPortConstraint;
   };
 }
 

@@ -8,7 +8,6 @@
 #include "MXGeometry.h"
 #include "libdrawio_utils.h"
 #include "librevenge-stream/librevenge-stream.h"
-#include "librevenge/RVNGPropertyList.h"
 #include "librevenge/librevenge.h"
 #include "libdrawio_xml.h"
 #include "libxml/globals.h"
@@ -19,6 +18,8 @@
 #include <string.h>
 #include <memory>
 #include <vector>
+#include <unicode/utypes.h>
+#include <unicode/ucnv.h>
 
 using std::shared_ptr;
 
