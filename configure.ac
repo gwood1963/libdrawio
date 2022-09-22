@@ -51,6 +51,13 @@ PKG_CHECK_MODULES([LIBXML],[
     libxml-2.0
 ])
 
+# ========
+# Find ICU
+# ========
+PKG_CHECK_MODULES([ICU], [icu-uc])
+AC_SUBST(ICU_CFLAGS)
+AC_SUBST(ICU_LIBS)
+
 # ==================
 # Find boost headers
 # ==================
@@ -200,7 +207,7 @@ AS_IF([test "x$native_win32" = "xyes"], [
     ])
 ])
 LIBDRAWIO_CXXFLAGS="${REVENGE_CFLAGS} ${LIBXML_CFLAGS} ${ICU_CFLAGS}"
-LIBDRAWIO_LIBS="${REVENGE_LIBS} ${LIBXML_LIBS} $ICU_LIBS}"
+LIBDRAWIO_LIBS="${REVENGE_LIBS} ${LIBXML_LIBS} ${ICU_LIBS}"
 AC_SUBST(LIBDRAWIO_CXXFLAGS)
 AC_SUBST(LIBDRAWIO_LIBS)
 AC_SUBST(DEBUG_CXXFLAGS)
