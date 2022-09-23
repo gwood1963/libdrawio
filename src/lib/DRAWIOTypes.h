@@ -32,7 +32,8 @@ namespace libdrawio {
   enum Shape {
     RECTANGLE,
     ELLIPSE,
-    TRIANGLE
+    TRIANGLE,
+    CALLOUT
   };
 
   struct Color {

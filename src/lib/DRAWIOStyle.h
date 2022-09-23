@@ -36,6 +36,10 @@ namespace libdrawio {
     boost::optional<Direction> targetPortConstraint;
     Shape shape = RECTANGLE;
     Direction direction = EAST;
+    double calloutLength = 30;
+    double calloutWidth = 20;
+    double calloutPosition = 0.5;
+    double calloutTipPosition = 0.5;
   };
 }
 

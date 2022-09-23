@@ -113,6 +113,105 @@ namespace libdrawio {
         }
         propList.insert("svg:points", points);
         painter->drawPolygon(propList);
+      } else if (style.shape == CALLOUT) {
+        librevenge::RVNGPropertyListVector points;
+        librevenge::RVNGPropertyList point;
+        switch (style.direction) {
+        case NORTH:
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition - style.calloutWidth) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutTipPosition) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          break;
+        case EAST:
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition + style.calloutWidth) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutTipPosition) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100);
+          points.append(point); point.clear();
+          break;
+        case SOUTH:
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + style.calloutLength) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + style.calloutLength) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutTipPosition) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + style.calloutLength) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition + style.calloutWidth) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + style.calloutLength) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          break;
+        case WEST:
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width) / 100);
+          point.insert("svg:y", (geometry.y + style.calloutLength) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition) / 100);
+          point.insert("svg:y", (geometry.y + style.calloutLength) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutTipPosition) / 100);
+          point.insert("svg:y", (geometry.y) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition - style.calloutWidth) / 100);
+          point.insert("svg:y", (geometry.y + style.calloutLength) / 100);
+          points.append(point); point.clear();
+          point.insert("svg:x", (geometry.x) / 100);
+          point.insert("svg:y", (geometry.y + style.calloutLength) / 100);
+          points.append(point); point.clear();
+          break;
+        }
+        propList.insert("svg:points", points);
+        painter->drawPolygon(propList);
       }
     }
     if (!data.label.empty()) {
@@ -198,11 +297,26 @@ namespace libdrawio {
     }
     it = style_m.find("ellipse"); if (it != style_m.end()) style.shape = ELLIPSE;
     it = style_m.find("triangle"); if (it != style_m.end()) style.shape = TRIANGLE;
+    it = style_m.find("shape"); if (it != style_m.end()) {
+      if (it->second == "callout") style.shape = CALLOUT;
+    }
     it = style_m.find("direction"); if (it != style_m.end()) {
       if (it->second == "north") style.direction = NORTH;
       else if (it->second == "east") style.direction = EAST;
       else if (it->second == "south") style.direction = SOUTH;
       else if (it->second == "west") style.direction = WEST;
+    }
+    it = style_m.find("size"); if (it != style_m.end()) {
+      if (style.shape == CALLOUT) style.calloutLength = std::stod(it->second);
+    }
+    it = style_m.find("base"); if (it != style_m.end()) {
+      if (style.shape == CALLOUT) style.calloutWidth = std::stod(it->second);
+    }
+    it = style_m.find("position"); if (it != style_m.end()) {
+      if (style.shape == CALLOUT) style.calloutPosition = std::stod(it->second);
+    }
+    it = style_m.find("position2"); if (it != style_m.end()) {
+      if (style.shape == CALLOUT) style.calloutTipPosition = std::stod(it->second);
     }
     it = style_m.find("fillColor"); if (it != style_m.end()) {
       if (it->second == "none") style.fillColor = boost::none;
@@ -250,6 +364,20 @@ namespace libdrawio {
             style.exitY = (style.exitY.get() == 1) ? 0.75 : 0.25;
             break;
           }
+        } else if (source.style.shape == CALLOUT) {
+          if (source.style.direction == NORTH) {
+            style.exitX =
+              std::min(1 - (source.style.calloutLength / source.geometry.width), style.exitX.get());
+          } else if (source.style.direction == EAST) {
+            style.exitY =
+              std::min(1 - (source.style.calloutLength / source.geometry.height), style.exitY.get());
+          } else if (source.style.direction == SOUTH) {
+            style.exitX =
+              std::max(source.style.calloutLength / source.geometry.width, style.exitX.get());
+          } else if (source.style.direction == WEST) {
+            style.exitY =
+              std::max(source.style.calloutLength / source.geometry.height, style.exitY.get());
+          }
         }
       }
       geometry.sourcePoint.x =
@@ -287,6 +415,20 @@ namespace libdrawio {
           case WEST:
             style.entryY = (style.entryY.get() == 1) ? 0.75 : 0.25;
             break;
+          }
+        } else if (target.style.shape == CALLOUT) {
+          if (target.style.direction == NORTH) {
+            style.entryX =
+              std::min(1 - (target.style.calloutLength / target.geometry.width), style.entryX.get());
+          } else if (target.style.direction == EAST) {
+            style.entryY =
+              std::min(1 - (target.style.calloutLength / target.geometry.height), style.entryY.get());
+          } else if (target.style.direction == SOUTH) {
+            style.entryX =
+              std::max(target.style.calloutLength / target.geometry.width, style.entryX.get());
+          } else if (target.style.direction == WEST) {
+            style.entryY =
+              std::max(target.style.calloutLength / target.geometry.height, style.entryY.get());
           }
         }
       }
