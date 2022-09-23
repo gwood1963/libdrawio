@@ -50,8 +50,6 @@ namespace libdrawio {
       
       propList.insert("svg:d", getPath());
 
-      propList.insert("draw:display", "always");
-
       painter->drawConnector(propList);
     } else if (vertex) {
       propList.insert("svg:x", geometry.x / 100.);
@@ -326,6 +324,22 @@ namespace libdrawio {
       if (it->second == "none") style.strokeColor = boost::none;
       else style.strokeColor = xmlStringToColor((xmlChar*)(it->second.c_str()));
     }
+    it = style_m.find("startArrow"); if (it != style_m.end()) {
+      if (it->second == "none") style.startArrow = boost::none;
+      else if (it->second == "classic") style.startArrow = CLASSIC;
+    }
+    it = style_m.find("startFill"); if (it != style_m.end())
+      style.startFill = xmlStringToBool((xmlChar*)(it->second.c_str()));
+    it = style_m.find("startSize"); if (it != style_m.end())
+      style.startSize = xmlStringToDouble((xmlChar*)(it->second.c_str()));
+    it = style_m.find("endArrow"); if (it != style_m.end()) {
+      if (it->second == "none") style.endArrow = boost::none;
+      else if (it->second == "classic") style.endArrow = CLASSIC;
+    }
+    it = style_m.find("endFill"); if (it != style_m.end())
+      style.endFill = xmlStringToBool((xmlChar*)(it->second.c_str()));
+    it = style_m.find("endSize"); if (it != style_m.end())
+      style.endSize = xmlStringToDouble((xmlChar*)(it->second.c_str()));
   }
 
   void MXCell::setEndPoints(std::map<librevenge::RVNGString, MXCell> id_map) {
@@ -451,6 +465,20 @@ namespace libdrawio {
     return out;
   }
 
+  std::string MXCell::getMarkerViewBox(MarkerType marker) {
+    switch (marker) {
+    case CLASSIC:
+      return "0 0 40 40";
+    };
+  }
+
+  std::string MXCell::getMarkerPath(MarkerType marker) {
+    switch (marker) {
+    case CLASSIC:
+      return "M 20 0 L 40 40 L 20 30 L 0 40 Z";
+    }
+  }
+
   librevenge::RVNGPropertyList MXCell::getStyle() {
     librevenge::RVNGPropertyList styleProps;
     if (!style.fillColor.has_value()) styleProps.insert("draw:fill", "none");
@@ -462,6 +490,25 @@ namespace libdrawio {
     else {
       styleProps.insert("draw:stroke", "solid");
       styleProps.insert("svg:stroke-color", style.strokeColor->to_string().c_str());
+      if (edge && (style.endFill || style.startFill)) {
+        styleProps.remove("draw:fill"); styleProps.remove("draw:fill-color");
+        styleProps.insert("draw:fill", "solid");
+        styleProps.insert("draw:fill-color", styleProps["svg:stroke-color"]->getStr());
+      }
+    }
+    if (style.startArrow.has_value()) {
+      styleProps.insert("draw:marker-start-viewbox",
+                        getMarkerViewBox(style.startArrow.get()).c_str());
+      styleProps.insert("draw:marker-start-path",
+                        getMarkerPath(style.startArrow.get()).c_str());
+      styleProps.insert("draw:marker-start-width", style.startSize / 100);
+    }
+    if (style.endArrow.has_value()) {
+      styleProps.insert("draw:marker-end-viewbox",
+                        getMarkerViewBox(style.endArrow.get()).c_str());
+      styleProps.insert("draw:marker-end-path",
+                        getMarkerPath(style.endArrow.get()).c_str());
+      styleProps.insert("draw:marker-end-width", style.endSize / 100);
     }
     return styleProps;
   }

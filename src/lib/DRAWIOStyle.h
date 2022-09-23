@@ -40,6 +40,12 @@ namespace libdrawio {
     double calloutWidth = 20;
     double calloutPosition = 0.5;
     double calloutTipPosition = 0.5;
+    boost::optional<MarkerType> startArrow;
+    bool startFill = true;
+    double startSize = 6;
+    boost::optional<MarkerType> endArrow = CLASSIC;
+    bool endFill = true;
+    double endSize = 6;
   };
 }
 

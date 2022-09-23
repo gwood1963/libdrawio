@@ -4,6 +4,7 @@
 #define MXCELL_H
 
 #include "DRAWIOStyle.h"
+#include "DRAWIOTypes.h"
 #include "MXGeometry.h"
 #include "DRAWIOUserObject.h"
 #include "librevenge/RVNGPropertyList.h"
@@ -44,6 +45,8 @@ namespace libdrawio {
     std::string getViewBox();
     librevenge::RVNGPropertyListVector getPath();
     librevenge::RVNGString processText(librevenge::RVNGString input);
+    std::string getMarkerViewBox(MarkerType marker);
+    std::string getMarkerPath(MarkerType marker);
     static int draw_count;
   };
 }

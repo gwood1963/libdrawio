@@ -36,6 +36,10 @@ namespace libdrawio {
     CALLOUT
   };
 
+  enum MarkerType {
+    CLASSIC
+  };
+
   struct Color {
     unsigned char r;
     unsigned char g;
