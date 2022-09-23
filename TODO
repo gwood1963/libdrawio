@@ -4,11 +4,17 @@
   * update MXCell::draw to draw new shape (get path/points)
   * update MXCell::setEndPoints to attach edges to new shape properly
 
-* add support for text labels
-
 * add different connector types
 
-* add end arrows for connectors
+* add more marker types for connectors
+  * add entry to MarkerType enum in DRAWIOTypes.h
+  * add detection to MXCell::getStyle
+  * add path to MXCell::getMarkerPath
+  * add viewbox to MXCell::getMarkerViewBox
 
-* add style information to produced odg file (probably by calling OdgGenerator::setStyle)
+* add more style properties
+  * add any necessary types to DRAWIOTypes.h
+  * add entry to DRAWIOStyle, setting default if necessary
+  * add detection to MXCell::getStyle
+  * update MXCell::setStyle to insert property styleProps
 
