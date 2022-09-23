@@ -4,6 +4,11 @@
 #define DRAWIOTYPES_H
 
 #include "librevenge/RVNGBinaryData.h"
+#include <ios>
+#include <sstream>
+#include <string>
+#include <iomanip>
+
 namespace libdrawio {
   enum Direction {
     NORTH,
@@ -47,6 +52,14 @@ namespace libdrawio {
     }
     inline bool operator!() const {
       return (!r && !g && !b && !a);
+    }
+    std::string to_string() {
+      std::stringstream out;
+      out << "#" << std::hex
+          << std::setw(2) << (unsigned)r
+          << std::setw(2) << (unsigned)g
+          << std::setw(2) << (unsigned)b;
+      return out.str();
     }
   };
 

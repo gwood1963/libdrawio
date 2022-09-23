@@ -2,12 +2,15 @@
 
 #include "MXCell.h"
 #include "DRAWIOTypes.h"
+#include "libdrawio_xml.h"
 #include "librevenge/RVNGPropertyList.h"
 #include "librevenge/RVNGPropertyListVector.h"
+#include "librevenge/RVNGString.h"
 #include "librevenge/librevenge.h"
 #include <boost/algorithm/string.hpp>
 #include <algorithm>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/none.hpp>
 #include <cmath>
 #include <map>
 #include <ostream>
@@ -17,17 +20,23 @@
 #include <iostream>
 
 namespace libdrawio {
+  int MXCell::draw_count = 0;
 
   void MXCell::draw(librevenge::RVNGDrawingInterface *painter,
                     std::map<librevenge::RVNGString, MXCell> id_map) {
+    librevenge::RVNGPropertyList propList;
+    if (!id.empty()) {
+      propList.insert("draw:id", id);
+      propList.insert("xml:id", id);
+    }
+    std::string style_name = "gr_" + std::to_string(draw_count);
+    librevenge::RVNGPropertyList styleProps = getStyle();
+    styleProps.insert("style:display-name", style_name.c_str());
+    propList.insert("draw:style-name", style_name.c_str());
+    painter->setStyle(styleProps);
     if (edge) {
       setEndPoints(id_map);
       calculateBounds();
-      librevenge::RVNGPropertyList propList;
-      if (!id.empty()) {
-        propList.insert("draw:id", id);
-        propList.insert("xml:id", id);
-      }
       if (!source_id.empty()) {
         propList.insert("draw:start-shape", source_id);
       }
@@ -45,11 +54,6 @@ namespace libdrawio {
 
       painter->drawConnector(propList);
     } else if (vertex) {
-      librevenge::RVNGPropertyList propList;
-      if (!id.empty()) {
-        propList.insert("draw:id", id);
-        propList.insert("xml:id", id);
-      }
       propList.insert("svg:x", geometry.x / 100.);
       propList.insert("svg:y", geometry.y / 100.);
       propList.insert("svg:width", geometry.width / 100.);
@@ -111,6 +115,14 @@ namespace libdrawio {
         painter->drawPolygon(propList);
       }
     }
+    if (!data.label.empty()) {
+      painter->startTextObject(propList);
+      painter->openParagraph(propList);
+      painter->insertText(processText(data.label));
+      painter->closeParagraph();
+      painter->endTextObject();
+    }
+    draw_count++;
   }
 
   void MXCell::calculateBounds() {
@@ -191,6 +203,14 @@ namespace libdrawio {
       else if (it->second == "east") style.direction = EAST;
       else if (it->second == "south") style.direction = SOUTH;
       else if (it->second == "west") style.direction = WEST;
+    }
+    it = style_m.find("fillColor"); if (it != style_m.end()) {
+      if (it->second == "none") style.fillColor = boost::none;
+      else style.fillColor = xmlStringToColor((xmlChar*)(it->second.c_str()));
+    }
+    it = style_m.find("strokeColor"); if (it != style_m.end()) {
+      if (it->second == "none") style.strokeColor = boost::none;
+      else style.strokeColor = xmlStringToColor((xmlChar*)(it->second.c_str()));
     }
   }
 
@@ -275,6 +295,33 @@ namespace libdrawio {
       geometry.targetPoint.y =
         target.geometry.y + (style.entryY.get() * target.geometry.height);
     }
+  }
+
+  librevenge::RVNGString MXCell::processText(librevenge::RVNGString input) {
+    librevenge::RVNGString out;
+    bool skipping = false;
+    for (unsigned long i = 0; i < input.size(); i++) {
+      char c = input.cstr()[i];
+      if (c == '<') skipping = true;
+      if (!skipping) out.append(c);
+      if (c == '>') skipping = false;
+    }
+    return out;
+  }
+
+  librevenge::RVNGPropertyList MXCell::getStyle() {
+    librevenge::RVNGPropertyList styleProps;
+    if (!style.fillColor.has_value()) styleProps.insert("draw:fill", "none");
+    else {
+      styleProps.insert("draw:fill", "solid");
+      styleProps.insert("draw:fill-color", style.fillColor->to_string().c_str());
+    }
+    if (!style.strokeColor.has_value()) styleProps.insert("draw:stroke", "none");
+    else {
+      styleProps.insert("draw:stroke", "solid");
+      styleProps.insert("svg:stroke-color", style.strokeColor->to_string().c_str());
+    }
+    return styleProps;
   }
 } // namespace libdrawio
 

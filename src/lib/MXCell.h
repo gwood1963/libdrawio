@@ -6,6 +6,7 @@
 #include "DRAWIOStyle.h"
 #include "MXGeometry.h"
 #include "DRAWIOUserObject.h"
+#include "librevenge/RVNGPropertyList.h"
 #include "librevenge/RVNGString.h"
 #include "librevenge/librevenge.h"
 #include <string>
@@ -32,6 +33,7 @@ namespace libdrawio {
     void draw(librevenge::RVNGDrawingInterface *painter,
               std::map<librevenge::RVNGString, MXCell> id_map);
     void setEndPoints(std::map<librevenge::RVNGString, MXCell> id_map);
+    librevenge::RVNGPropertyList getStyle();
   private:
     struct Bounds {
       int x, y;
@@ -41,6 +43,8 @@ namespace libdrawio {
     Bounds bounds;
     std::string getViewBox();
     librevenge::RVNGPropertyListVector getPath();
+    librevenge::RVNGString processText(librevenge::RVNGString input);
+    static int draw_count;
   };
 }
 
