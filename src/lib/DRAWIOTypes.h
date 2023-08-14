@@ -33,7 +33,8 @@ namespace libdrawio {
     RECTANGLE,
     ELLIPSE,
     TRIANGLE,
-    CALLOUT
+    CALLOUT,
+    PROCESS
   };
 
   enum MarkerType {
