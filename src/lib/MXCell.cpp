@@ -65,47 +65,47 @@ namespace libdrawio {
         librevenge::RVNGPropertyList point;
         switch (style.direction) {
         case NORTH:
-          point.insert("svg:x", (geometry.x + geometry.width / 2) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width / 2) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
           break;
         case EAST:
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height / 2) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height / 2) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
           break;
         case SOUTH:
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width / 2) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width / 2) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
           break;
         case WEST:
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height / 2) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height / 2) / 100.);
           points.append(point); point.clear();
           break;
         }
@@ -116,100 +116,171 @@ namespace libdrawio {
         librevenge::RVNGPropertyList point;
         switch (style.direction) {
         case NORTH:
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition - style.calloutWidth) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition - style.calloutWidth) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutTipPosition) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutTipPosition) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
           break;
         case EAST:
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition + style.calloutWidth) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition + style.calloutWidth) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutTipPosition) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutTipPosition) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100.);
           points.append(point); point.clear();
           break;
         case SOUTH:
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + style.calloutLength) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x + style.calloutLength) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + style.calloutLength) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition) / 100);
+          point.insert("svg:x", (geometry.x + style.calloutLength) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutTipPosition) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutTipPosition) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + style.calloutLength) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition + style.calloutWidth) / 100);
+          point.insert("svg:x", (geometry.x + style.calloutLength) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition + style.calloutWidth) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + style.calloutLength) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x + style.calloutLength) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
           break;
         case WEST:
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100);
-          point.insert("svg:y", (geometry.y + style.calloutLength) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          point.insert("svg:y", (geometry.y + style.calloutLength) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition) / 100);
-          point.insert("svg:y", (geometry.y + style.calloutLength) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition) / 100.);
+          point.insert("svg:y", (geometry.y + style.calloutLength) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutTipPosition) / 100);
-          point.insert("svg:y", (geometry.y) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutTipPosition) / 100.);
+          point.insert("svg:y", (geometry.y) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition - style.calloutWidth) / 100);
-          point.insert("svg:y", (geometry.y + style.calloutLength) / 100);
+          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition - style.calloutWidth) / 100.);
+          point.insert("svg:y", (geometry.y + style.calloutLength) / 100.);
           points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100);
-          point.insert("svg:y", (geometry.y + style.calloutLength) / 100);
+          point.insert("svg:x", (geometry.x) / 100.);
+          point.insert("svg:y", (geometry.y + style.calloutLength) / 100.);
           points.append(point); point.clear();
           break;
         }
         propList.insert("svg:points", points);
         painter->drawPolygon(propList);
+      } else if (style.shape == PROCESS) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList element;
+        element.insert("librevenge:path-action", "M");
+        element.insert("svg:x", (geometry.x) / 100.);
+        element.insert("svg:y", (geometry.y) / 100.);
+        path.append(element); element.clear();
+        element.insert("librevenge:path-action", "L");
+        element.insert("svg:x", (geometry.x + geometry.width) / 100.);
+        element.insert("svg:y", (geometry.y) / 100.);
+        path.append(element); element.clear();
+        element.insert("librevenge:path-action", "L");
+        element.insert("svg:x", (geometry.x + geometry.width) / 100.);
+        element.insert("svg:y", (geometry.y + geometry.height) / 100.);
+        path.append(element); element.clear();
+        element.insert("librevenge:path-action", "L");
+        element.insert("svg:x", (geometry.x) / 100.);
+        element.insert("svg:y", (geometry.y + geometry.height) / 100.);
+        path.append(element); element.clear();
+        element.insert("librevenge:path-action", "Z");
+        path.append(element); element.clear();
+        switch (style.direction) {
+        case NORTH:
+        case SOUTH:
+          element.insert("librevenge:path-action", "M");
+          element.insert("svg:x", (geometry.x) / 100.);
+          element.insert("svg:y",
+                         (geometry.y + geometry.height * style.processBarSize) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "L");
+          element.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          element.insert("svg:y",
+                         (geometry.y + geometry.height * style.processBarSize) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "M");
+          element.insert("svg:x", (geometry.x) / 100.);
+          element.insert("svg:y",
+                         (geometry.y + geometry.height * (1 - style.processBarSize)) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "L");
+          element.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          element.insert("svg:y",
+                         (geometry.y + geometry.height * (1 - style.processBarSize)) / 100.);
+          path.append(element); element.clear();
+          break;
+        case EAST:
+        case WEST:
+          element.insert("librevenge:path-action", "M");
+          element.insert("svg:x",
+                         (geometry.x + geometry.width * style.processBarSize) / 100.);
+          element.insert("svg:y", (geometry.y) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "L");
+          element.insert("svg:x",
+                         (geometry.x + geometry.width * style.processBarSize) / 100.);
+          element.insert("svg:y", (geometry.y + geometry.height) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "M");
+          element.insert("svg:x",
+                         (geometry.x + geometry.width * (1 - style.processBarSize)) / 100.);
+          element.insert("svg:y", (geometry.y) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "L");
+          element.insert("svg:x",
+                         (geometry.x + geometry.width * (1 - style.processBarSize)) / 100.);
+          element.insert("svg:y", (geometry.y + geometry.height) / 100.);
+          path.append(element); element.clear();
+          break;
+        }
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
       }
     }
     if (!data.label.empty()) {
@@ -297,6 +368,7 @@ namespace libdrawio {
     it = style_m.find("triangle"); if (it != style_m.end()) style.shape = TRIANGLE;
     it = style_m.find("shape"); if (it != style_m.end()) {
       if (it->second == "callout") style.shape = CALLOUT;
+      else if (it->second == "process") style.shape = PROCESS;
     }
     it = style_m.find("direction"); if (it != style_m.end()) {
       if (it->second == "north") style.direction = NORTH;
@@ -306,6 +378,7 @@ namespace libdrawio {
     }
     it = style_m.find("size"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutLength = std::stod(it->second);
+      else if (style.shape == PROCESS) style.processBarSize = std::stod(it->second);
     }
     it = style_m.find("base"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutWidth = std::stod(it->second);
@@ -496,19 +569,19 @@ namespace libdrawio {
         styleProps.insert("draw:fill-color", styleProps["svg:stroke-color"]->getStr());
       }
     }
-    if (style.startArrow.has_value()) {
+    if (style.startArrow.has_value() && edge) {
       styleProps.insert("draw:marker-start-viewbox",
                         getMarkerViewBox(style.startArrow.get()).c_str());
       styleProps.insert("draw:marker-start-path",
                         getMarkerPath(style.startArrow.get()).c_str());
-      styleProps.insert("draw:marker-start-width", style.startSize / 100);
+      styleProps.insert("draw:marker-start-width", style.startSize / 100.);
     }
-    if (style.endArrow.has_value()) {
+    if (style.endArrow.has_value() && edge) {
       styleProps.insert("draw:marker-end-viewbox",
                         getMarkerViewBox(style.endArrow.get()).c_str());
       styleProps.insert("draw:marker-end-path",
                         getMarkerPath(style.endArrow.get()).c_str());
-      styleProps.insert("draw:marker-end-width", style.endSize / 100);
+      styleProps.insert("draw:marker-end-width", style.endSize / 100.);
     }
     return styleProps;
   }

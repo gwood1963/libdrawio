@@ -40,6 +40,7 @@ namespace libdrawio {
     double calloutWidth = 20;
     double calloutPosition = 0.5;
     double calloutTipPosition = 0.5;
+    double processBarSize = 0.1;
     boost::optional<MarkerType> startArrow;
     bool startFill = true;
     double startSize = 6;
