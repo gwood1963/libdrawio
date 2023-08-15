@@ -437,14 +437,14 @@ namespace libdrawio {
           style.exitX =
             (source.geometry.x + source.geometry.width < target.geometry.x) ? 1 :
             (source.geometry.x > target.geometry.x + target.geometry.width) ? 0 : 0.5;
-          if (style.exitX == 0.5)
+          if (style.exitX.get() == 0.5)
             style.exitY = (source.geometry.y < target.geometry.y) ? 1 : 0;
           else style.exitY = 0.5;
         } else { // target point specified
           style.exitX =
             (source.geometry.x < geometry.targetPoint.x) ? 1 :
             (source.geometry.x > geometry.targetPoint.x) ? 0 : 0.5;
-          if (style.exitX == 0.5)
+          if (style.exitX.get() == 0.5)
             style.exitY = (source.geometry.y < geometry.targetPoint.y) ? 1 : 0;
           else style.exitY = 0.5;
         }
@@ -453,11 +453,13 @@ namespace libdrawio {
           switch (source.style.direction) {
           case NORTH:
           case SOUTH:
-            style.exitX = (style.exitX.get() == 1) ? 0.75 : 0.25;
+            if (style.exitY.get() == 0.5)
+              style.exitX = (style.exitX.get() == 1) ? 0.75 : 0.25;
             break;
           case EAST:
           case WEST:
-            style.exitY = (style.exitY.get() == 1) ? 0.75 : 0.25;
+            if (style.exitX.get() == 0.5)
+              style.exitY = (style.exitY.get() == 1) ? 0.75 : 0.25;
             break;
           }
         } else if (source.style.shape == CALLOUT) {
@@ -486,30 +488,32 @@ namespace libdrawio {
       if (!style.entryX.has_value() && !style.entryY.has_value()) {
         if (!source_id.empty()) {
           MXCell source = id_map.at(source_id);
-          style.entryX =
-            (target.geometry.x + target.geometry.width < source.geometry.x) ? 1 :
-            (target.geometry.x > source.geometry.x + source.geometry.width) ? 0 : 0.5;
-          if (style.entryX == 0.5)
-            style.entryY = (target.geometry.y < source.geometry.y) ? 1 : 0;
-          else style.entryY = 0.5;
+          style.entryY =
+            (target.geometry.y > source.geometry.y + source.geometry.height) ? 0 :
+            (target.geometry.y + target.geometry.height < source.geometry.y) ? 1 : 0.5;
+          if (style.entryY.get() == 0.5)
+            style.entryX = (target.geometry.x < source.geometry.x) ? 1 : 0;
+          else style.entryX = 0.5;
         } else { // source point specified
-          style.entryX =
-            (target.geometry.x < geometry.sourcePoint.x) ? 1 :
-            (target.geometry.x > geometry.sourcePoint.x) ? 0 : 0.5;
-          if (style.entryX == 0.5)
-            style.entryY = (target.geometry.y < geometry.sourcePoint.y) ? 1 : 0;
-          else style.entryY = 0.5;
+          style.entryY =
+            (target.geometry.y + target.geometry.height < geometry.sourcePoint.y) ? 1 :
+            (target.geometry.y > geometry.sourcePoint.y) ? 0 : 0.5;
+          if (style.entryY.get() == 0.5)
+            style.entryX = (target.geometry.x < geometry.sourcePoint.x) ? 1 : 0;
+          else style.entryX = 0.5;
         }
         if (target.style.shape == TRIANGLE) {
           // update entryX, entryY to connect with diagonal edges of triangle
           switch (target.style.direction) {
           case NORTH:
           case SOUTH:
-            style.entryX = (style.entryX.get() == 1) ? 0.75 : 0.25;
+            if (style.entryY.get() == 0.5)
+              style.entryX = (style.entryX.get() == 1) ? 0.75 : 0.25;
             break;
           case EAST:
           case WEST:
-            style.entryY = (style.entryY.get() == 1) ? 0.75 : 0.25;
+            if (style.entryX.get() == 0.5)
+              style.entryY = (style.entryY.get() == 1) ? 0.75 : 0.25;
             break;
           }
         } else if (target.style.shape == CALLOUT) {
