@@ -52,15 +52,19 @@ namespace libdrawio {
 
       painter->drawConnector(propList);
     } else if (vertex) {
-      propList.insert("svg:x", geometry.x / 100.);
-      propList.insert("svg:y", geometry.y / 100.);
-      propList.insert("svg:width", geometry.width / 100.);
-      propList.insert("svg:height", geometry.height / 100.);
-      if (style.shape == RECTANGLE)
+      if (style.shape == RECTANGLE) {
+        propList.insert("svg:x", geometry.x / 100.);
+        propList.insert("svg:y", geometry.y / 100.);
+        propList.insert("svg:width", geometry.width / 100.);
+        propList.insert("svg:height", geometry.height / 100.);
         painter->drawRectangle(propList);
-      else if (style.shape == ELLIPSE)
+      } else if (style.shape == ELLIPSE) {
+        propList.insert("svg:rx", geometry.width / 200.);
+        propList.insert("svg:ry", geometry.height / 200.);
+        propList.insert("svg:cx", (geometry.x + geometry.width / 2) / 100.);
+        propList.insert("svg:cy", (geometry.y + geometry.height / 2) / 100.);
         painter->drawEllipse(propList);
-      else if (style.shape == TRIANGLE) {
+      } else if (style.shape == TRIANGLE) {
         librevenge::RVNGPropertyListVector points;
         librevenge::RVNGPropertyList point;
         switch (style.direction) {
@@ -284,6 +288,11 @@ namespace libdrawio {
       }
     }
     if (!data.label.empty()) {
+      propList.clear();
+      propList.insert("svg:x", geometry.x / 100.);
+      propList.insert("svg:y", geometry.y / 100.);
+      propList.insert("svg:width", geometry.width / 100.);
+      propList.insert("svg:height", geometry.height / 100.);
       painter->startTextObject(propList);
       painter->openParagraph(propList);
       painter->insertText(processText(data.label));
