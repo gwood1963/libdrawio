@@ -3,13 +3,11 @@
 #include "MXCell.h"
 #include "DRAWIOTypes.h"
 #include "libdrawio_xml.h"
-#include "librevenge/RVNGPropertyList.h"
-#include "librevenge/RVNGPropertyListVector.h"
 #include "librevenge/RVNGString.h"
-#include "librevenge/librevenge.h"
 #include <boost/algorithm/string.hpp>
 #include <algorithm>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <boost/none.hpp>
 #include <cmath>
 #include <map>
@@ -18,6 +16,7 @@
 #include <sstream>
 #include <vector>
 #include <iostream>
+#include <librevenge/librevenge.h>
 
 namespace libdrawio {
   int MXCell::draw_count = 0;
@@ -57,12 +56,30 @@ namespace libdrawio {
         propList.insert("svg:y", geometry.y / 100.);
         propList.insert("svg:width", geometry.width / 100.);
         propList.insert("svg:height", geometry.height / 100.);
+        double rx = geometry.width / 200.; double ry = geometry.height / 200.;
+        double cx = geometry.x / 100. + rx; double cy = geometry.y / 100. + ry;
+        double angle = -style.rotation * boost::math::double_constants::pi / 180;
+        double dx = sqrt(pow(rx, 2.) + pow(ry, 2.))*cos(atan(ry/rx)-angle) - rx;
+        double dy = sqrt(pow(rx, 2.) + pow(ry, 2.))*sin(atan(ry/rx)-angle) - ry;
+        librevenge::RVNGString sValue = "translate(";
+        sValue.append(std::to_string(-geometry.x / 100.).c_str());
+        sValue.append("in,");
+        sValue.append(std::to_string(-geometry.y / 100.).c_str());
+        sValue.append("in) rotate(");
+        sValue.append(std::to_string(angle).c_str());
+        sValue.append(") translate(");
+        sValue.append(std::to_string(cx - rx - dx).c_str());
+        sValue.append("in,");
+        sValue.append(std::to_string(cy - ry - dy).c_str());
+        sValue.append("in)");
+        propList.insert("draw:transform", sValue);
         painter->drawRectangle(propList);
       } else if (style.shape == ELLIPSE) {
         propList.insert("svg:rx", geometry.width / 200.);
         propList.insert("svg:ry", geometry.height / 200.);
         propList.insert("svg:cx", (geometry.x + geometry.width / 2) / 100.);
         propList.insert("svg:cy", (geometry.y + geometry.height / 2) / 100.);
+        propList.insert("librevenge:rotate", -style.rotation);
         painter->drawEllipse(propList);
       } else if (style.shape == TRIANGLE) {
         librevenge::RVNGPropertyListVector points;
@@ -422,6 +439,8 @@ namespace libdrawio {
       style.endFill = xmlStringToBool((xmlChar*)(it->second.c_str()));
     it = style_m.find("endSize"); if (it != style_m.end())
       style.endSize = xmlStringToDouble((xmlChar*)(it->second.c_str()));
+    it = style_m.find("rotation"); if (it != style_m.end())
+      style.rotation = xmlStringToDouble((xmlChar*)(it->second.c_str()));
   }
 
   void MXCell::setEndPoints(std::map<librevenge::RVNGString, MXCell> id_map) {
