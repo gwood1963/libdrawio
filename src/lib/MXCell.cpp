@@ -234,6 +234,62 @@ namespace libdrawio {
       } else if (style.shape == PROCESS) {
         librevenge::RVNGPropertyListVector path;
         librevenge::RVNGPropertyList element;
+        switch (style.direction) {
+        case NORTH:
+        case SOUTH:
+          element.insert("librevenge:path-action", "M");
+          element.insert("svg:x", (geometry.x) / 100.);
+          element.insert("svg:y",
+                         (geometry.y + geometry.height * style.processBarSize) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "L");
+          element.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          element.insert("svg:y",
+                         (geometry.y + geometry.height * style.processBarSize) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "Z");
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "M");
+          element.insert("svg:x", (geometry.x + geometry.width) / 100.);
+          element.insert("svg:y",
+                         (geometry.y + geometry.height * (1 - style.processBarSize)) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "L");
+          element.insert("svg:x", (geometry.x) / 100.);
+          element.insert("svg:y",
+                         (geometry.y + geometry.height * (1 - style.processBarSize)) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "Z");
+          path.append(element); element.clear();
+          break;
+        case EAST:
+        case WEST:
+          element.insert("librevenge:path-action", "M");
+          element.insert("svg:x",
+                         (geometry.x + geometry.width * style.processBarSize) / 100.);
+          element.insert("svg:y", (geometry.y) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "L");
+          element.insert("svg:x",
+                         (geometry.x + geometry.width * style.processBarSize) / 100.);
+          element.insert("svg:y", (geometry.y + geometry.height) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "Z");
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "M");
+          element.insert("svg:x",
+                         (geometry.x + geometry.width * (1 - style.processBarSize)) / 100.);
+          element.insert("svg:y", (geometry.y + geometry.height) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "L");
+          element.insert("svg:x",
+                         (geometry.x + geometry.width * (1 - style.processBarSize)) / 100.);
+          element.insert("svg:y", (geometry.y) / 100.);
+          path.append(element); element.clear();
+          element.insert("librevenge:path-action", "Z");
+          path.append(element); element.clear();
+          break;
+        }
         element.insert("librevenge:path-action", "M");
         element.insert("svg:x", (geometry.x) / 100.);
         element.insert("svg:y", (geometry.y) / 100.);
@@ -252,54 +308,6 @@ namespace libdrawio {
         path.append(element); element.clear();
         element.insert("librevenge:path-action", "Z");
         path.append(element); element.clear();
-        switch (style.direction) {
-        case NORTH:
-        case SOUTH:
-          element.insert("librevenge:path-action", "M");
-          element.insert("svg:x", (geometry.x) / 100.);
-          element.insert("svg:y",
-                         (geometry.y + geometry.height * style.processBarSize) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "L");
-          element.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          element.insert("svg:y",
-                         (geometry.y + geometry.height * style.processBarSize) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "M");
-          element.insert("svg:x", (geometry.x) / 100.);
-          element.insert("svg:y",
-                         (geometry.y + geometry.height * (1 - style.processBarSize)) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "L");
-          element.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          element.insert("svg:y",
-                         (geometry.y + geometry.height * (1 - style.processBarSize)) / 100.);
-          path.append(element); element.clear();
-          break;
-        case EAST:
-        case WEST:
-          element.insert("librevenge:path-action", "M");
-          element.insert("svg:x",
-                         (geometry.x + geometry.width * style.processBarSize) / 100.);
-          element.insert("svg:y", (geometry.y) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "L");
-          element.insert("svg:x",
-                         (geometry.x + geometry.width * style.processBarSize) / 100.);
-          element.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "M");
-          element.insert("svg:x",
-                         (geometry.x + geometry.width * (1 - style.processBarSize)) / 100.);
-          element.insert("svg:y", (geometry.y) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "L");
-          element.insert("svg:x",
-                         (geometry.x + geometry.width * (1 - style.processBarSize)) / 100.);
-          element.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          path.append(element); element.clear();
-          break;
-        }
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
