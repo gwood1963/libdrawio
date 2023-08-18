@@ -47,6 +47,9 @@ namespace libdrawio {
     librevenge::RVNGString processText(librevenge::RVNGString input);
     std::string getMarkerViewBox(MarkerType marker);
     std::string getMarkerPath(MarkerType marker);
+    librevenge::RVNGPropertyList getPoint(
+      double x, double y, double cx, double cy, double angle
+    );
     static int draw_count;
   };
 }

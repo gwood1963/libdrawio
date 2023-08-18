@@ -3,6 +3,7 @@
 #include "MXCell.h"
 #include "DRAWIOTypes.h"
 #include "libdrawio_xml.h"
+#include "librevenge/RVNGPropertyList.h"
 #include "librevenge/RVNGString.h"
 #include <boost/algorithm/string.hpp>
 #include <algorithm>
@@ -50,15 +51,17 @@ namespace libdrawio {
       propList.insert("svg:d", getPath());
 
       painter->drawConnector(propList);
-    } else if (vertex) {
+    }
+    else if (vertex) {
+      double x, y;
+      double rx = geometry.width / 200.; double ry = geometry.height / 200.;
+      double cx = geometry.x / 100. + rx; double cy = geometry.y / 100. + ry;
+      double angle = -style.rotation * boost::math::double_constants::pi / 180;
       if (style.shape == RECTANGLE) {
         propList.insert("svg:x", geometry.x / 100.);
         propList.insert("svg:y", geometry.y / 100.);
         propList.insert("svg:width", geometry.width / 100.);
         propList.insert("svg:height", geometry.height / 100.);
-        double rx = geometry.width / 200.; double ry = geometry.height / 200.;
-        double cx = geometry.x / 100. + rx; double cy = geometry.y / 100. + ry;
-        double angle = -style.rotation * boost::math::double_constants::pi / 180;
         double dx = sqrt(pow(rx, 2.) + pow(ry, 2.))*cos(atan(ry/rx)-angle) - rx;
         double dy = sqrt(pow(rx, 2.) + pow(ry, 2.))*sin(atan(ry/rx)-angle) - ry;
         librevenge::RVNGString sValue = "translate(";
@@ -74,240 +77,288 @@ namespace libdrawio {
         sValue.append("in)");
         propList.insert("draw:transform", sValue);
         painter->drawRectangle(propList);
-      } else if (style.shape == ELLIPSE) {
-        propList.insert("svg:rx", geometry.width / 200.);
-        propList.insert("svg:ry", geometry.height / 200.);
-        propList.insert("svg:cx", (geometry.x + geometry.width / 2) / 100.);
-        propList.insert("svg:cy", (geometry.y + geometry.height / 2) / 100.);
+      }
+      else if (style.shape == ELLIPSE) {
+        propList.insert("svg:rx", rx);
+        propList.insert("svg:ry", ry);
+        propList.insert("svg:cx", cx);
+        propList.insert("svg:cy", cy);
         propList.insert("librevenge:rotate", -style.rotation);
         painter->drawEllipse(propList);
-      } else if (style.shape == TRIANGLE) {
-        librevenge::RVNGPropertyListVector points;
-        librevenge::RVNGPropertyList point;
-        switch (style.direction) {
-        case NORTH:
-          point.insert("svg:x", (geometry.x + geometry.width / 2) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          break;
-        case EAST:
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height / 2) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          break;
-        case SOUTH:
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width / 2) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          break;
-        case WEST:
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height / 2) / 100.);
-          points.append(point); point.clear();
-          break;
-        }
-        propList.insert("svg:points", points);
-        painter->drawPolygon(propList);
-      } else if (style.shape == CALLOUT) {
-        librevenge::RVNGPropertyListVector points;
-        librevenge::RVNGPropertyList point;
-        switch (style.direction) {
-        case NORTH:
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition - style.calloutWidth) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutTipPosition) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width - style.calloutLength) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          break;
-        case EAST:
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition + style.calloutWidth) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutTipPosition) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height - style.calloutLength) / 100.);
-          points.append(point); point.clear();
-          break;
-        case SOUTH:
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + style.calloutLength) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + style.calloutLength) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutTipPosition) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + style.calloutLength) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height * style.calloutPosition + style.calloutWidth) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + style.calloutLength) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          break;
-        case WEST:
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          point.insert("svg:y", (geometry.y + style.calloutLength) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition) / 100.);
-          point.insert("svg:y", (geometry.y + style.calloutLength) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutTipPosition) / 100.);
-          point.insert("svg:y", (geometry.y) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x + geometry.width * style.calloutPosition - style.calloutWidth) / 100.);
-          point.insert("svg:y", (geometry.y + style.calloutLength) / 100.);
-          points.append(point); point.clear();
-          point.insert("svg:x", (geometry.x) / 100.);
-          point.insert("svg:y", (geometry.y + style.calloutLength) / 100.);
-          points.append(point); point.clear();
-          break;
-        }
-        propList.insert("svg:points", points);
-        painter->drawPolygon(propList);
-      } else if (style.shape == PROCESS) {
+      }
+      else if (style.shape == TRIANGLE) {
         librevenge::RVNGPropertyListVector path;
-        librevenge::RVNGPropertyList element;
+        librevenge::RVNGPropertyList point;
+        switch (style.direction) {
+        case NORTH:
+          x = cx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case SOUTH:
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case WEST:
+          x = cx - rx; y = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
+      else if (style.shape == CALLOUT) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        switch (style.direction) {
+        case NORTH:
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx - style.calloutLength/100.; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx - style.calloutLength/100.;
+          y = cy + ry*(2*style.calloutPosition - 1) - style.calloutWidth/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry*(2*style.calloutTipPosition - 1);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx - style.calloutLength/100.;
+          y = cy + ry*(2*style.calloutPosition - 1);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx - style.calloutLength/100.; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry - style.calloutLength/100.;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx*(2*style.calloutPosition - 1) + style.calloutWidth/100;
+          y = cy + ry - style.calloutLength/100.;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx*(2*style.calloutPosition - 1); y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx*(2*style.calloutPosition - 1);
+          y = cy + ry - style.calloutLength/100.;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry - style.calloutLength/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case SOUTH:
+          x = cx - rx + style.calloutLength/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx + style.calloutLength/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx + style.calloutLength/100;
+          y = cy + ry*(2*style.calloutPosition - 1) + style.calloutWidth/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx + style.calloutLength/100;
+          y = cy + ry*(2*style.calloutPosition - 1);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry*(2*style.calloutPosition - 1);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case WEST:
+          x = cx - rx; y = cy - ry + style.calloutLength/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx*(2*style.calloutPosition - 1) - style.calloutWidth/100;
+          y = cy - ry + style.calloutLength/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx*(2*style.calloutPosition - 1); y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx*(2*style.calloutPosition - 1);
+          y = cy - ry + style.calloutLength/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry + style.calloutLength/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:points", path);
+        painter->drawPolygon(propList);
+      }
+      else if (style.shape == PROCESS) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
         switch (style.direction) {
         case NORTH:
         case SOUTH:
-          element.insert("librevenge:path-action", "M");
-          element.insert("svg:x", (geometry.x) / 100.);
-          element.insert("svg:y",
-                         (geometry.y + geometry.height * style.processBarSize) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "L");
-          element.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          element.insert("svg:y",
-                         (geometry.y + geometry.height * style.processBarSize) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "Z");
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "M");
-          element.insert("svg:x", (geometry.x + geometry.width) / 100.);
-          element.insert("svg:y",
-                         (geometry.y + geometry.height * (1 - style.processBarSize)) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "L");
-          element.insert("svg:x", (geometry.x) / 100.);
-          element.insert("svg:y",
-                         (geometry.y + geometry.height * (1 - style.processBarSize)) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "Z");
-          path.append(element); element.clear();
+          x = cx - rx; y = cy + ry*(2*style.processBarSize - 1);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry*(2*style.processBarSize - 1);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry*(1 - 2*style.processBarSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry*(1 - 2*style.processBarSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
           break;
         case EAST:
         case WEST:
-          element.insert("librevenge:path-action", "M");
-          element.insert("svg:x",
-                         (geometry.x + geometry.width * style.processBarSize) / 100.);
-          element.insert("svg:y", (geometry.y) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "L");
-          element.insert("svg:x",
-                         (geometry.x + geometry.width * style.processBarSize) / 100.);
-          element.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "Z");
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "M");
-          element.insert("svg:x",
-                         (geometry.x + geometry.width * (1 - style.processBarSize)) / 100.);
-          element.insert("svg:y", (geometry.y + geometry.height) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "L");
-          element.insert("svg:x",
-                         (geometry.x + geometry.width * (1 - style.processBarSize)) / 100.);
-          element.insert("svg:y", (geometry.y) / 100.);
-          path.append(element); element.clear();
-          element.insert("librevenge:path-action", "Z");
-          path.append(element); element.clear();
+          x = cx + rx*(2*style.processBarSize - 1); y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx*(2*style.processBarSize - 1); y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          x = cx + rx*(1 - 2*style.processBarSize); y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx*(1 - 2*style.processBarSize); y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
           break;
         }
-        element.insert("librevenge:path-action", "M");
-        element.insert("svg:x", (geometry.x) / 100.);
-        element.insert("svg:y", (geometry.y) / 100.);
-        path.append(element); element.clear();
-        element.insert("librevenge:path-action", "L");
-        element.insert("svg:x", (geometry.x + geometry.width) / 100.);
-        element.insert("svg:y", (geometry.y) / 100.);
-        path.append(element); element.clear();
-        element.insert("librevenge:path-action", "L");
-        element.insert("svg:x", (geometry.x + geometry.width) / 100.);
-        element.insert("svg:y", (geometry.y + geometry.height) / 100.);
-        path.append(element); element.clear();
-        element.insert("librevenge:path-action", "L");
-        element.insert("svg:x", (geometry.x) / 100.);
-        element.insert("svg:y", (geometry.y + geometry.height) / 100.);
-        path.append(element); element.clear();
-        element.insert("librevenge:path-action", "Z");
-        path.append(element); element.clear();
+        x = cx - rx; y = cy - ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "M");
+        path.append(point); point.clear();
+        x = cx + rx; y = cy - ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "L");
+        path.append(point); point.clear();
+        x = cx + rx; y = cy + ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "L");
+        path.append(point); point.clear();
+        x = cx - rx; y = cy + ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "L");
+        path.append(point); point.clear();
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
@@ -361,6 +412,20 @@ namespace libdrawio {
     i.insert("svg:y", geometry.targetPoint.y / 100.);
     out.append(i);
     return out;
+  }
+
+  librevenge::RVNGPropertyList MXCell::getPoint(
+    double x, double y, double cx, double cy, double angle
+  )
+  {
+    librevenge::RVNGPropertyList point;
+    double r = sqrt(pow(x - cx, 2) + pow(y - cy, 2));
+    double old_angle = x != cx ?
+      atan((y-cy) / (x-cx)) + (x > cx ? 0 : boost::math::double_constants::pi) :
+      (y <= cy ? -1 : 1) * boost::math::double_constants::pi / 2;
+    point.insert("svg:x", cx + r*cos(old_angle - angle));
+    point.insert("svg:y", cy + r*sin(old_angle - angle));
+    return point;
   }
 
   void MXCell::setStyle() {
