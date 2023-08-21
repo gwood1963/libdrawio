@@ -3,8 +3,6 @@
 #include "MXCell.h"
 #include "DRAWIOTypes.h"
 #include "libdrawio_xml.h"
-#include "librevenge/RVNGPropertyList.h"
-#include "librevenge/RVNGString.h"
 #include <boost/algorithm/string.hpp>
 #include <algorithm>
 #include <boost/algorithm/string/classification.hpp>
@@ -445,6 +443,14 @@ namespace libdrawio {
       style.exitX = std::stod(it->second);
     it = style_m.find("exitY"); if (it != style_m.end())
       style.exitY = std::stod(it->second);
+    it = style_m.find("entryDx"); if (it != style_m.end())
+      style.entryDx = std::stod(it->second);
+    it = style_m.find("entryDy"); if (it != style_m.end())
+      style.entryDy = std::stod(it->second);
+    it = style_m.find("exitDx"); if (it != style_m.end())
+      style.exitDx = std::stod(it->second);
+    it = style_m.find("exitDy"); if (it != style_m.end())
+      style.exitDy = std::stod(it->second);
     it = style_m.find("sourcePortConstraint"); if (it != style_m.end()) {
       if (it->second == "north") style.sourcePortConstraint = NORTH;
       else if (it->second == "east") style.sourcePortConstraint = EAST;
@@ -469,6 +475,7 @@ namespace libdrawio {
       if (it->second == "callout") style.shape = CALLOUT;
       else if (it->second == "process") style.shape = PROCESS;
     }
+    style.perimeter = default_perimeter.at(style.shape);
     it = style_m.find("direction"); if (it != style_m.end()) {
       if (it->second == "north") style.direction = NORTH;
       else if (it->second == "east") style.direction = EAST;
@@ -523,61 +530,69 @@ namespace libdrawio {
     if (!edge) return;
     if (!source_id.empty()) {
       MXCell source = id_map[source_id];
-      if (!style.exitX.has_value() && !style.exitY.has_value()) {
+      bool fixed = style.exitX.has_value() && style.exitY.has_value();
+      if (!fixed) {
         if (!target_id.empty()) {
           MXCell target = id_map.at(target_id);
           style.exitX =
             (source.geometry.x + source.geometry.width < target.geometry.x) ? 1 :
             (source.geometry.x > target.geometry.x + target.geometry.width) ? 0 : 0.5;
-          if (style.exitX.get() == 0.5)
+          if (style.exitX.get() == 0.5) {
             style.exitY = (source.geometry.y < target.geometry.y) ? 1 : 0;
-          else style.exitY = 0.5;
+          } else style.exitY = 0.5;
         } else { // target point specified
           style.exitX =
-            (source.geometry.x < geometry.targetPoint.x) ? 1 :
+            (source.geometry.x + source.geometry.width < geometry.targetPoint.x) ? 1 :
             (source.geometry.x > geometry.targetPoint.x) ? 0 : 0.5;
           if (style.exitX.get() == 0.5)
             style.exitY = (source.geometry.y < geometry.targetPoint.y) ? 1 : 0;
           else style.exitY = 0.5;
         }
-        if (source.style.shape == TRIANGLE) {
+        geometry.sourcePoint.x =
+          source.geometry.x + (style.exitX.get() * source.geometry.width);
+        geometry.sourcePoint.y =
+          source.geometry.y + (style.exitY.get() * source.geometry.height);
+      }
+      else {
+        if (source.style.perimeter == TRIANGLE_P) {
           // update exitX, exitY to connect with diagonal edges of triangle
           switch (source.style.direction) {
           case NORTH:
           case SOUTH:
-            if (style.exitY.get() == 0.5)
+            if (style.exitY.get() == 0.5
+                && (style.exitX.get() == 1 || style.exitX.get() == 0))
               style.exitX = (style.exitX.get() == 1) ? 0.75 : 0.25;
             break;
           case EAST:
           case WEST:
-            if (style.exitX.get() == 0.5)
+            if (style.exitX.get() == 0.5
+                && (style.exitY.get() == 1 || style.exitY.get() == 0))
               style.exitY = (style.exitY.get() == 1) ? 0.75 : 0.25;
             break;
           }
-        } else if (source.style.shape == CALLOUT) {
-          if (source.style.direction == NORTH) {
-            style.exitX =
-              std::min(1 - (source.style.calloutLength / source.geometry.width), style.exitX.get());
-          } else if (source.style.direction == EAST) {
-            style.exitY =
-              std::min(1 - (source.style.calloutLength / source.geometry.height), style.exitY.get());
-          } else if (source.style.direction == SOUTH) {
-            style.exitX =
-              std::max(source.style.calloutLength / source.geometry.width, style.exitX.get());
-          } else if (source.style.direction == WEST) {
-            style.exitY =
-              std::max(source.style.calloutLength / source.geometry.height, style.exitY.get());
+        } else if (source.style.perimeter == ELLIPSE_P) {
+          if ((style.exitX.get() == 1 || style.exitX.get() == 0)
+              && (style.exitY.get() == 1 || style.exitY.get() == 0)) {
+            style.exitX = 0.5 + sqrt(2) / 4 * (style.exitX.get() == 1 ? 1 : -1);
+            style.exitY = 0.5 + sqrt(2) / 4 * (style.exitY.get() == 1 ? 1 : -1);
           }
         }
+        double x =
+          source.geometry.x + (style.exitX.get() * source.geometry.width) + style.exitDx;
+        double y =
+          source.geometry.y + (style.exitY.get() * source.geometry.height) + style.exitDy;
+        double cx = source.geometry.x + source.geometry.width / 2;
+        double cy = source.geometry.y + source.geometry.height / 2;
+        double angle = -source.style.rotation * boost::math::double_constants::pi / 180;
+        librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
+        geometry.sourcePoint.x = point["svg:x"]->getDouble();
+        geometry.sourcePoint.y = point["svg:y"]->getDouble();
       }
-      geometry.sourcePoint.x =
-        source.geometry.x + (style.exitX.get() * source.geometry.width);
-      geometry.sourcePoint.y =
-        source.geometry.y + (style.exitY.get() * source.geometry.height);
     }
     if (!target_id.empty()) {
       MXCell target = id_map[target_id];
-      if (!style.entryX.has_value() && !style.entryY.has_value()) {
+      bool fixed = style.entryX.has_value() && style.entryY.has_value();
+      if (!fixed) {
         if (!source_id.empty()) {
           MXCell source = id_map.at(source_id);
           style.entryY =
@@ -594,40 +609,45 @@ namespace libdrawio {
             style.entryX = (target.geometry.x < geometry.sourcePoint.x) ? 1 : 0;
           else style.entryX = 0.5;
         }
-        if (target.style.shape == TRIANGLE) {
+        geometry.targetPoint.x =
+          target.geometry.x + (style.entryX.get() * target.geometry.width);
+        geometry.targetPoint.y =
+          target.geometry.y + (style.entryY.get() * target.geometry.height);
+      } else {
+        if (target.style.perimeter == TRIANGLE_P) {
           // update entryX, entryY to connect with diagonal edges of triangle
           switch (target.style.direction) {
           case NORTH:
           case SOUTH:
-            if (style.entryY.get() == 0.5)
+            if (style.entryY.get() == 0.5
+                && (style.entryX.get() == 1 || style.entryX.get() == 0))
               style.entryX = (style.entryX.get() == 1) ? 0.75 : 0.25;
             break;
           case EAST:
           case WEST:
-            if (style.entryX.get() == 0.5)
+            if (style.entryX.get() == 0.5
+                && (style.entryY.get() == 1 || style.entryY.get() == 0))
               style.entryY = (style.entryY.get() == 1) ? 0.75 : 0.25;
             break;
           }
-        } else if (target.style.shape == CALLOUT) {
-          if (target.style.direction == NORTH) {
-            style.entryX =
-              std::min(1 - (target.style.calloutLength / target.geometry.width), style.entryX.get());
-          } else if (target.style.direction == EAST) {
-            style.entryY =
-              std::min(1 - (target.style.calloutLength / target.geometry.height), style.entryY.get());
-          } else if (target.style.direction == SOUTH) {
-            style.entryX =
-              std::max(target.style.calloutLength / target.geometry.width, style.entryX.get());
-          } else if (target.style.direction == WEST) {
-            style.entryY =
-              std::max(target.style.calloutLength / target.geometry.height, style.entryY.get());
+        } else if (target.style.perimeter == ELLIPSE_P) {
+          if ((style.entryX.get() == 1 || style.entryX.get() == 0)
+              && (style.entryY.get() == 1 || style.entryY.get() == 0)) {
+            style.entryX = 0.5 + sqrt(2) / 4 * (style.entryX.get() == 1 ? 1 : -1);
+            style.entryY = 0.5 + sqrt(2) / 4 * (style.entryY.get() == 1 ? 1 : -1);
           }
         }
+        double x =
+          target.geometry.x + (style.entryX.get() * target.geometry.width) + style.entryDx;
+        double y =
+          target.geometry.y + (style.entryY.get() * target.geometry.height) + style.entryDy;
+        double cx = target.geometry.x + target.geometry.width / 2;
+        double cy = target.geometry.y + target.geometry.height / 2;
+        double angle = -target.style.rotation * boost::math::double_constants::pi / 180;
+        librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
+        geometry.targetPoint.x = point["svg:x"]->getDouble();
+        geometry.targetPoint.y = point["svg:y"]->getDouble();
       }
-      geometry.targetPoint.x =
-        target.geometry.x + (style.entryX.get() * target.geometry.width);
-      geometry.targetPoint.y =
-        target.geometry.y + (style.entryY.get() * target.geometry.height);
     }
   }
 

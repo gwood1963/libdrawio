@@ -12,6 +12,7 @@ namespace libdrawio {
     bool orthogonal;
     boost::optional<double> entryX, entryY; // in [0,1]
     boost::optional<double> exitX, exitY; // same range as above
+    double entryDx, entryDy, exitDx, exitDy;
     bool wrapText;
     double rotation; // rotation in [0,360]
     boost::optional<Color> fillColor = Color(255, 255, 255, 1);
@@ -35,6 +36,7 @@ namespace libdrawio {
     boost::optional<Direction> sourcePortConstraint;
     boost::optional<Direction> targetPortConstraint;
     Shape shape = RECTANGLE;
+    Perimeter perimeter = RECTANGLE_P;
     Direction direction = EAST;
     double calloutLength = 30;
     double calloutWidth = 20;

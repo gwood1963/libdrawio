@@ -5,6 +5,7 @@
 
 #include "librevenge/RVNGBinaryData.h"
 #include <ios>
+#include <map>
 #include <sstream>
 #include <string>
 #include <iomanip>
@@ -35,6 +36,21 @@ namespace libdrawio {
     TRIANGLE,
     CALLOUT,
     PROCESS
+  };
+
+  enum Perimeter {
+    RECTANGLE_P,
+    ELLIPSE_P,
+    TRIANGLE_P,
+    CALLOUT_P
+  };
+
+  const std::map<Shape, Perimeter> default_perimeter = {
+    {RECTANGLE, RECTANGLE_P},
+    {ELLIPSE, ELLIPSE_P},
+    {TRIANGLE, TRIANGLE_P},
+    {CALLOUT, CALLOUT_P},
+    {PROCESS, RECTANGLE_P}
   };
 
   enum MarkerType {
