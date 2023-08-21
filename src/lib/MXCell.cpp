@@ -3,6 +3,8 @@
 #include "MXCell.h"
 #include "DRAWIOTypes.h"
 #include "libdrawio_xml.h"
+#include "librevenge/RVNGPropertyList.h"
+#include "librevenge/RVNGPropertyListVector.h"
 #include <boost/algorithm/string.hpp>
 #include <algorithm>
 #include <boost/algorithm/string/classification.hpp>
@@ -360,6 +362,30 @@ namespace libdrawio {
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
+      else if (style.shape == RHOMBUS) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        x = cx; y = cy - ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "M");
+        path.append(point); point.clear();
+        x = cx + rx; y = cy;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "L");
+        path.append(point); point.clear();
+        x = cx; y = cy + ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "L");
+        path.append(point); point.clear();
+        x = cx - rx; y = cy;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "L");
+        path.append(point); point.clear();
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
     }
     if (!data.label.empty()) {
       propList.clear();
@@ -471,6 +497,7 @@ namespace libdrawio {
     }
     it = style_m.find("ellipse"); if (it != style_m.end()) style.shape = ELLIPSE;
     it = style_m.find("triangle"); if (it != style_m.end()) style.shape = TRIANGLE;
+    it = style_m.find("rhombus"); if (it != style_m.end()) style.shape = RHOMBUS;
     it = style_m.find("shape"); if (it != style_m.end()) {
       if (it->second == "callout") style.shape = CALLOUT;
       else if (it->second == "process") style.shape = PROCESS;
@@ -576,6 +603,12 @@ namespace libdrawio {
             style.exitX = 0.5 + sqrt(2) / 4 * (style.exitX.get() == 1 ? 1 : -1);
             style.exitY = 0.5 + sqrt(2) / 4 * (style.exitY.get() == 1 ? 1 : -1);
           }
+        } else if (source.style.perimeter == RHOMBUS_P) {
+          if ((style.exitX.get() == 1 || style.exitX.get() == 0)
+              && (style.exitY.get() == 1 || style.exitY.get() == 0)) {
+            style.exitX = 0.5 + 0.25 * (style.exitX.get() == 1 ? 1 : -1);
+            style.exitY = 0.5 + 0.25 * (style.exitY.get() == 1 ? 1 : -1);
+          }
         }
         double x =
           source.geometry.x + (style.exitX.get() * source.geometry.width) + style.exitDx;
@@ -635,6 +668,18 @@ namespace libdrawio {
               && (style.entryY.get() == 1 || style.entryY.get() == 0)) {
             style.entryX = 0.5 + sqrt(2) / 4 * (style.entryX.get() == 1 ? 1 : -1);
             style.entryY = 0.5 + sqrt(2) / 4 * (style.entryY.get() == 1 ? 1 : -1);
+          }
+        } else if (target.style.perimeter == ELLIPSE_P) {
+          if ((style.entryX.get() == 1 || style.entryX.get() == 0)
+              && (style.entryY.get() == 1 || style.entryY.get() == 0)) {
+            style.entryX = 0.5 + sqrt(2) / 4 * (style.entryX.get() == 1 ? 1 : -1);
+            style.entryY = 0.5 + sqrt(2) / 4 * (style.entryY.get() == 1 ? 1 : -1);
+          }
+        } else if (target.style.perimeter == RHOMBUS_P) {
+          if ((style.entryX.get() == 1 || style.entryX.get() == 0)
+              && (style.entryY.get() == 1 || style.entryY.get() == 0)) {
+            style.entryX = 0.5 + 0.25 * (style.entryX.get() == 1 ? 1 : -1);
+            style.entryY = 0.5 + 0.25 * (style.entryY.get() == 1 ? 1 : -1);
           }
         }
         double x =
