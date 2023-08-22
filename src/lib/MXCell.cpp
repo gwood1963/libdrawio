@@ -11,10 +11,12 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/none.hpp>
 #include <cmath>
+#include <initializer_list>
 #include <map>
 #include <ostream>
 #include <string>
 #include <sstream>
+#include <set>
 #include <vector>
 #include <iostream>
 #include <librevenge/librevenge.h>
@@ -386,6 +388,54 @@ namespace libdrawio {
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
+      else if (style.shape == PARALLELOGRAM) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        switch (style.direction) {
+        case NORTH:
+        case SOUTH:
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry + style.parallelogramSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry - style.parallelogramSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+        case WEST:
+          x = cx - rx + style.parallelogramSize/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx - style.parallelogramSize/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
     }
     if (!data.label.empty()) {
       propList.clear();
@@ -501,6 +551,7 @@ namespace libdrawio {
     it = style_m.find("shape"); if (it != style_m.end()) {
       if (it->second == "callout") style.shape = CALLOUT;
       else if (it->second == "process") style.shape = PROCESS;
+      else if (it->second == "parallelogram") style.shape = PARALLELOGRAM;
     }
     style.perimeter = default_perimeter.at(style.shape);
     it = style_m.find("direction"); if (it != style_m.end()) {
@@ -512,6 +563,8 @@ namespace libdrawio {
     it = style_m.find("size"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutLength = std::stod(it->second);
       else if (style.shape == PROCESS) style.processBarSize = std::stod(it->second);
+      else if (style.shape == PARALLELOGRAM)
+        style.parallelogramSize = std::stod(it->second);
     }
     it = style_m.find("base"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutWidth = std::stod(it->second);
@@ -583,20 +636,9 @@ namespace libdrawio {
       else {
         if (source.style.perimeter == TRIANGLE_P) {
           // update exitX, exitY to connect with diagonal edges of triangle
-          switch (source.style.direction) {
-          case NORTH:
-          case SOUTH:
-            if (style.exitY.get() == 0.5
-                && (style.exitX.get() == 1 || style.exitX.get() == 0))
-              style.exitX = (style.exitX.get() == 1) ? 0.75 : 0.25;
-            break;
-          case EAST:
-          case WEST:
-            if (style.exitX.get() == 0.5
-                && (style.exitY.get() == 1 || style.exitY.get() == 0))
-              style.exitY = (style.exitY.get() == 1) ? 0.75 : 0.25;
-            break;
-          }
+          if (style.exitX.get() == 0.5
+              && (style.exitY.get() == 1 || style.exitY.get() == 0))
+            style.exitY = (style.exitY.get() == 1) ? 0.75 : 0.25;
         } else if (source.style.perimeter == ELLIPSE_P) {
           if ((style.exitX.get() == 1 || style.exitX.get() == 0)
               && (style.exitY.get() == 1 || style.exitY.get() == 0)) {
@@ -609,11 +651,65 @@ namespace libdrawio {
             style.exitX = 0.5 + 0.25 * (style.exitX.get() == 1 ? 1 : -1);
             style.exitY = 0.5 + 0.25 * (style.exitY.get() == 1 ? 1 : -1);
           }
+        } else if (source.style.perimeter == PARALLELOGRAM_P) {
+          std::set<double> vals = {0, 0.25, 0.5, 0.75, 1};
+          if ((vals.count(style.exitX.get())
+               && (style.exitY.get() == 1 || style.exitY.get() == 0))
+              || (vals.count(style.exitY.get())
+                  && (style.exitX.get() == 1 || style.exitX.get() == 0))) {
+            double c =
+              (source.style.parallelogramSize
+               / (source.style.direction == NORTH || source.style.direction == SOUTH
+                  ? source.geometry.height : source.geometry.width));
+            c = std::max(c, 0.5);
+            if (c != 0 && style.exitX.get() != 0.5) {
+              double m =
+                (style.exitY.get() - 0.5) / (style.exitX.get() - 0.5);
+              if (style.exitX.get() < c && style.exitY.get() < 1) {
+                style.exitX = 0.5 * (m + 1) / (m + 1/c);
+                style.exitY = 1 - style.exitX.get() / c;
+              } else if (style.exitX.get() > 1 - c && style.exitY.get() > 0) {
+                style.exitX = (1/c - 0.5 + m/2) / (m + 1/c);
+                style.exitY = 1 - 1/c * (style.exitX.get() - 1 + c);
+              }
+            }
+          }
         }
-        double x =
-          source.geometry.x + (style.exitX.get() * source.geometry.width) + style.exitDx;
-        double y =
-          source.geometry.y + (style.exitY.get() * source.geometry.height) + style.exitDy;
+        double x, y;
+        switch (source.style.direction) {
+        case EAST:
+          x = (source.geometry.x
+               + (style.exitX.get() * source.geometry.width)
+               + style.exitDx);
+          y = (source.geometry.y
+               + (style.exitY.get() * source.geometry.height)
+               + style.exitDy);
+          break;
+        case WEST:
+          x = (source.geometry.x
+               + ((1 - style.exitX.get()) * source.geometry.width)
+               - style.exitDx);
+          y = (source.geometry.y
+               + ((1 - style.exitY.get()) * source.geometry.height)
+               - style.exitDy);
+          break;
+        case NORTH:
+          x = (source.geometry.x
+               + (style.exitY.get() * source.geometry.width)
+               + style.exitDy);
+          y = (source.geometry.y
+               + ((1 - style.exitX.get()) * source.geometry.height)
+               - style.exitDx);
+          break;
+        case SOUTH:
+          x = (source.geometry.x
+               + ((1 - style.exitY.get()) * source.geometry.width)
+               - style.exitDy);
+          y = (source.geometry.y
+               + (style.exitX.get() * source.geometry.height)
+               + style.exitDx);
+          break;
+        }
         double cx = source.geometry.x + source.geometry.width / 2;
         double cy = source.geometry.y + source.geometry.height / 2;
         double angle = -source.style.rotation * boost::math::double_constants::pi / 180;
@@ -649,20 +745,9 @@ namespace libdrawio {
       } else {
         if (target.style.perimeter == TRIANGLE_P) {
           // update entryX, entryY to connect with diagonal edges of triangle
-          switch (target.style.direction) {
-          case NORTH:
-          case SOUTH:
-            if (style.entryY.get() == 0.5
-                && (style.entryX.get() == 1 || style.entryX.get() == 0))
-              style.entryX = (style.entryX.get() == 1) ? 0.75 : 0.25;
-            break;
-          case EAST:
-          case WEST:
-            if (style.entryX.get() == 0.5
-                && (style.entryY.get() == 1 || style.entryY.get() == 0))
-              style.entryY = (style.entryY.get() == 1) ? 0.75 : 0.25;
-            break;
-          }
+          if (style.entryX.get() == 0.5
+              && (style.entryY.get() == 1 || style.entryY.get() == 0))
+            style.entryY = (style.entryY.get() == 1) ? 0.75 : 0.25;
         } else if (target.style.perimeter == ELLIPSE_P) {
           if ((style.entryX.get() == 1 || style.entryX.get() == 0)
               && (style.entryY.get() == 1 || style.entryY.get() == 0)) {
@@ -681,11 +766,65 @@ namespace libdrawio {
             style.entryX = 0.5 + 0.25 * (style.entryX.get() == 1 ? 1 : -1);
             style.entryY = 0.5 + 0.25 * (style.entryY.get() == 1 ? 1 : -1);
           }
+        } else if (target.style.perimeter == PARALLELOGRAM_P) {
+          std::set<double> vals = {0, 0.25, 0.5, 0.75, 1};
+          if ((vals.count(style.entryX.get())
+               && (style.entryY.get() == 1 || style.entryY.get() == 0))
+              || (vals.count(style.entryY.get())
+                  && (style.entryX.get() == 1 || style.entryX.get() == 0))) {
+            double c =
+              (target.style.parallelogramSize
+               / (target.style.direction == NORTH || target.style.direction == SOUTH
+                  ? target.geometry.height : target.geometry.width));
+            c = std::max(c, 0.5);
+            if (c != 0 && style.entryX.get() != 0.5) {
+              double m =
+                (style.entryY.get() - 0.5) / (style.entryX.get() - 0.5);
+              if (style.entryX.get() < c && style.entryY.get() < 1) {
+                style.entryX = 0.5 * (m + 1) / (m + 1/c);
+                style.entryY = 1 - style.entryX.get() / c;
+              } else if (style.entryX.get() > 1 - c && style.entryY.get() > 0) {
+                style.entryX = (1/c - 0.5 + m/2) / (m + 1/c);
+                style.entryY = 1 - 1/c * (style.entryX.get() - 1 + c);
+              }
+            }
+          }
         }
-        double x =
-          target.geometry.x + (style.entryX.get() * target.geometry.width) + style.entryDx;
-        double y =
-          target.geometry.y + (style.entryY.get() * target.geometry.height) + style.entryDy;
+        double x, y;
+        switch (target.style.direction) {
+        case EAST:
+          x = (target.geometry.x
+               + (style.entryX.get() * target.geometry.width)
+               + style.entryDx);
+          y = (target.geometry.y
+               + (style.entryY.get() * target.geometry.height)
+               + style.entryDy);
+          break;
+        case WEST:
+          x = (target.geometry.x
+               + ((1 - style.entryX.get()) * target.geometry.width)
+               - style.entryDx);
+          y = (target.geometry.y
+               + ((1 - style.entryY.get()) * target.geometry.height)
+               - style.entryDy);
+          break;
+        case NORTH:
+          x = (target.geometry.x
+               + (style.entryY.get() * target.geometry.width)
+               + style.entryDy);
+          y = (target.geometry.y
+               + ((1 - style.entryX.get()) * target.geometry.height)
+               - style.entryDx);
+          break;
+        case SOUTH:
+          x = (target.geometry.x
+               + ((1 - style.entryY.get()) * target.geometry.width)
+               - style.entryDy);
+          y = (target.geometry.y
+               + (style.entryX.get() * target.geometry.height)
+               + style.entryDx);
+          break;
+        }
         double cx = target.geometry.x + target.geometry.width / 2;
         double cy = target.geometry.y + target.geometry.height / 2;
         double angle = -target.style.rotation * boost::math::double_constants::pi / 180;
