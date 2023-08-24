@@ -44,6 +44,7 @@ namespace libdrawio {
     double calloutTipPosition = 0.5;
     double processBarSize = 0.1;
     double parallelogramSize = 20;
+    double hexagonSize = 20;
     boost::optional<MarkerType> startArrow;
     bool startFill = true;
     double startSize = 6;
