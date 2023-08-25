@@ -38,7 +38,8 @@ namespace libdrawio {
     PROCESS,
     RHOMBUS,
     PARALLELOGRAM,
-    HEXAGON
+    HEXAGON,
+    STEP
   };
 
   enum Perimeter {
@@ -48,7 +49,8 @@ namespace libdrawio {
     CALLOUT_P,
     RHOMBUS_P,
     PARALLELOGRAM_P,
-    HEXAGON_P
+    HEXAGON_P,
+    STEP_P
   };
 
   const std::map<Shape, Perimeter> default_perimeter = {
@@ -59,7 +61,8 @@ namespace libdrawio {
     {PROCESS, RECTANGLE_P},
     {RHOMBUS, RHOMBUS_P},
     {PARALLELOGRAM, PARALLELOGRAM_P},
-    {HEXAGON, HEXAGON_P}
+    {HEXAGON, HEXAGON_P},
+    {STEP, STEP_P}
   };
 
   enum MarkerType {

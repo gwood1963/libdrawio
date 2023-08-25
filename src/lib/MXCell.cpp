@@ -499,6 +499,119 @@ namespace libdrawio {
         path.append(point); point.clear();
         propList.insert("svg:d", path);
         painter->drawPath(propList);
+      } else if (style.shape == STEP) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        switch (style.direction) {
+        case NORTH:
+          x = cx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry + style.stepSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx; y = cy + ry - style.stepSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy - ry + style.stepSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case SOUTH:
+          x = cx; y = cy - ry + style.stepSize;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry - style.stepSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry - style.stepSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+          x = cx - rx + style.stepSize/100; y = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx - style.stepSize/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx - style.stepSize/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case WEST:
+          x = cx - rx; y = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx + style.stepSize/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx - style.stepSize/100; y = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx + style.stepSize/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
       }
     }
     if (!data.label.empty()) {
@@ -617,6 +730,7 @@ namespace libdrawio {
       else if (it->second == "process") style.shape = PROCESS;
       else if (it->second == "parallelogram") style.shape = PARALLELOGRAM;
       else if (it->second == "hexagon") style.shape = HEXAGON;
+      else if (it->second == "step") style.shape = STEP;
     }
     style.perimeter = default_perimeter.at(style.shape);
     it = style_m.find("direction"); if (it != style_m.end()) {
@@ -625,12 +739,22 @@ namespace libdrawio {
       else if (it->second == "south") style.direction = SOUTH;
       else if (it->second == "west") style.direction = WEST;
     }
+    it = style_m.find("fixedSize"); if (it != style_m.end()) {
+      std::istringstream(it->second) >> style.fixedSize;
+    }
     it = style_m.find("size"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutLength = std::stod(it->second);
       else if (style.shape == PROCESS) style.processBarSize = std::stod(it->second);
       else if (style.shape == PARALLELOGRAM)
         style.parallelogramSize = std::stod(it->second);
       else if (style.shape == HEXAGON) style.hexagonSize = std::stod(it->second);
+      else if (style.shape == STEP) {
+        style.stepSize = std::stod(it->second);
+        if (!style.fixedSize)
+          style.stepSize *=
+            (style.direction == NORTH || style.direction == SOUTH
+             ? geometry.height : geometry.width);
+      }
     }
     it = style_m.find("base"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutWidth = std::stod(it->second);
@@ -777,6 +901,31 @@ namespace libdrawio {
                 style.exitY = (1 + c - style.exitX.get()) / (2*c);
               }
             }
+          } else if (source.style.perimeter == STEP_P) {
+            double c =
+              (source.style.stepSize
+               / (source.style.direction == NORTH || source.style.direction == SOUTH
+                  ? source.geometry.height : source.geometry.width));
+            if (x == 0 && c > 0.5 && 0 < y && y < 1) {
+              style.exitX = 0.5; style.exitY = 0.5;
+            } else if (y == 0.5) {
+              style.exitX = x == 0 ? c : 1;
+            } else {
+              double m = (x - 0.5) / (y - 0.5);
+              if (x == 0 && y < 0.5) {
+                style.exitY = (1 - m) / (4*c - 2*m);
+                style.exitX = 2*c*style.exitY.get();
+              } else if (x == 0 && y > 0.5) {
+                style.exitY = (4*c - 1 + m) / (4*c + 2*m);
+                style.exitX = 2*c - 2*c*style.exitY.get();
+              } else if (x > 1 - c && y < 0.5) {
+                style.exitY = (1 - 2*c + m) / (2*m - 4*c);
+                style.exitX = 2*c*style.exitY.get() + 1 - c;
+              } else if (x > 1 - c && y > 0.5) {
+                style.exitY = (1 + 2*c + m) / (4*c + 2*m);
+                style.exitX = 1 + c - 2*c*style.exitY.get();
+              }
+            }
           }
         }
         switch (source.style.direction) {
@@ -921,6 +1070,31 @@ namespace libdrawio {
               } else if (x > 1 - c && y > 0.5) {
                 style.entryX = (m*c + 1) / (2*m*c + 1);
                 style.entryY = (1 + c - style.entryX.get()) / (2*c);
+              }
+            }
+          } else if (target.style.perimeter == STEP_P) {
+            double c =
+              (target.style.stepSize
+               / (target.style.direction == NORTH || target.style.direction == SOUTH
+                  ? target.geometry.height : target.geometry.width));
+            if (x == 0 && c > 0.5 && 0 < y && y < 1) {
+              style.entryX = 0.5; style.entryY = 0.5;
+            } else if (y == 0.5) {
+              style.entryX = x == 0 ? c : 1;
+            } else {
+              double m = (x - 0.5) / (y - 0.5);
+              if (x == 0 && y < 0.5) {
+                style.entryY = (1 - m) / (4*c - 2*m);
+                style.entryX = 2*c*style.entryY.get();
+              } else if (x == 0 && y > 0.5) {
+                style.entryY = (4*c - 1 + m) / (4*c + 2*m);
+                style.entryX = 2*c - 2*c*style.entryY.get();
+              } else if (x > 1 - c && y < 0.5) {
+                style.entryY = (1 - 2*c + m) / (2*m - 4*c);
+                style.entryX = 2*c*style.entryY.get() + 1 - c;
+              } else if (x > 1 - c && y > 0.5) {
+                style.entryY = (1 + 2*c + m) / (4*c + 2*m);
+                style.entryX = 1 + c - 2*c*style.entryY.get();
               }
             }
           }
