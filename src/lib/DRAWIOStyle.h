@@ -47,6 +47,7 @@ namespace libdrawio {
     double hexagonSize = 20;
     double stepSize = 20;
     double trapezoidSize = 20;
+    double cardSize = 20;
     bool fixedSize = true;
     boost::optional<MarkerType> startArrow;
     bool startFill = true;

@@ -40,7 +40,8 @@ namespace libdrawio {
     PARALLELOGRAM,
     HEXAGON,
     STEP,
-    TRAPEZOID
+    TRAPEZOID,
+    CARD
   };
 
   enum Perimeter {
@@ -52,7 +53,7 @@ namespace libdrawio {
     PARALLELOGRAM_P,
     HEXAGON_P,
     STEP_P,
-    TRAPEZOID_P
+    TRAPEZOID_P,
   };
 
   const std::map<Shape, Perimeter> default_perimeter = {
@@ -65,7 +66,8 @@ namespace libdrawio {
     {PARALLELOGRAM, PARALLELOGRAM_P},
     {HEXAGON, HEXAGON_P},
     {STEP, STEP_P},
-    {TRAPEZOID, TRAPEZOID_P}
+    {TRAPEZOID, TRAPEZOID_P},
+    {CARD, RECTANGLE_P}
   };
 
   enum MarkerType {
