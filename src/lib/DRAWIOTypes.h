@@ -41,7 +41,8 @@ namespace libdrawio {
     HEXAGON,
     STEP,
     TRAPEZOID,
-    CARD
+    CARD,
+    STORAGE
   };
 
   enum Perimeter {
@@ -67,7 +68,8 @@ namespace libdrawio {
     {HEXAGON, HEXAGON_P},
     {STEP, STEP_P},
     {TRAPEZOID, TRAPEZOID_P},
-    {CARD, RECTANGLE_P}
+    {CARD, RECTANGLE_P},
+    {STORAGE, RECTANGLE_P}
   };
 
   enum MarkerType {

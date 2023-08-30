@@ -793,6 +793,120 @@ namespace libdrawio {
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
+      else if (style.shape == STORAGE) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        x = cx - rx; y = cy - ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "M");
+        path.append(point); point.clear();
+        x = cx + rx; y = cy - ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "L");
+        path.append(point); point.clear();
+        x = cx + rx; y = cy + ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "L");
+        path.append(point); point.clear();
+        x = cx - rx; y = cy + ry;
+        point = getPoint(x, y, cx, cy, angle);
+        point.insert("librevenge:path-action", "L");
+        path.append(point); point.clear();
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        switch (style.direction) {
+        case NORTH:
+          x = cx - rx; y = cy + ry - style.storageY/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry - style.storageY/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          x = cx - rx + style.storageX/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx + style.storageX/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          break;
+        case SOUTH:
+          x = cx - rx; y = cy - ry + style.storageY/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry + style.storageY/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          x = cx + rx - style.storageX/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx - style.storageX/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+          x = cx - rx; y = cy - ry + style.storageY/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry + style.storageY/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          x = cx - rx + style.storageX/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx + style.storageX/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          break;
+        case WEST:
+          x = cx - rx; y = cy + ry - style.storageY/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry - style.storageY/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          x = cx + rx - style.storageX/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx - style.storageX/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          point.insert("librevenge:path-action", "Z");
+          path.append(point); point.clear();
+          break;
+        }
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
     }
     if (!data.label.empty()) {
       propList.clear();
@@ -913,6 +1027,7 @@ namespace libdrawio {
       else if (it->second == "step") style.shape = STEP;
       else if (it->second == "trapezoid") style.shape = TRAPEZOID;
       else if (it->second == "card") style.shape = CARD;
+      else if (it->second == "internalStorage") style.shape = STORAGE;
     }
     style.perimeter = default_perimeter.at(style.shape);
     it = style_m.find("direction"); if (it != style_m.end()) {
@@ -948,6 +1063,12 @@ namespace libdrawio {
     }
     it = style_m.find("position2"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutTipPosition = std::stod(it->second);
+    }
+    it = style_m.find("dx"); if (it != style_m.end()) {
+      if (style.shape == STORAGE) style.storageX = std::stod(it->second);
+    }
+    it = style_m.find("dy"); if (it != style_m.end()) {
+      if (style.shape == STORAGE) style.storageY = std::stod(it->second);
     }
     it = style_m.find("fillColor"); if (it != style_m.end()) {
       if (it->second == "none") style.fillColor = boost::none;
