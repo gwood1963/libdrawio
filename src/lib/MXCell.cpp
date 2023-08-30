@@ -613,6 +613,88 @@ namespace libdrawio {
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
+      else if (style.shape == TRAPEZOID) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        switch (style.direction) {
+        case NORTH:
+          x = cx - rx; y = cy - ry + style.trapezoidSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry - style.trapezoidSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case SOUTH:
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry + style.trapezoidSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry - style.trapezoidSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+          x = cx - rx + style.trapezoidSize/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx - style.trapezoidSize/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        case WEST:
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx - style.trapezoidSize/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx + style.trapezoidSize/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
     }
     if (!data.label.empty()) {
       propList.clear();
@@ -731,6 +813,7 @@ namespace libdrawio {
       else if (it->second == "parallelogram") style.shape = PARALLELOGRAM;
       else if (it->second == "hexagon") style.shape = HEXAGON;
       else if (it->second == "step") style.shape = STEP;
+      else if (it->second == "trapezoid") style.shape = TRAPEZOID;
     }
     style.perimeter = default_perimeter.at(style.shape);
     it = style_m.find("direction"); if (it != style_m.end()) {
@@ -755,6 +838,7 @@ namespace libdrawio {
             (style.direction == NORTH || style.direction == SOUTH
              ? geometry.height : geometry.width);
       }
+      else if (style.shape == TRAPEZOID) style.trapezoidSize = std::stod(it->second);
     }
     it = style_m.find("base"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutWidth = std::stod(it->second);
@@ -1043,6 +1127,22 @@ namespace libdrawio {
           } else if (x > 1 - c && y > 0.5) {
             *outY = (1 + 2*c + m) / (4*c + 2*m);
             *outX = 1 + c - 2*c**outY;
+          }
+        }
+      } else if (shape.style.perimeter == TRAPEZOID_P) {
+        double c =
+          (shape.style.trapezoidSize
+           / (shape.style.direction == NORTH || shape.style.direction == SOUTH
+              ? shape.geometry.height : shape.geometry.width));
+        c = std::min(c, 0.5);
+        if (c != 0 && x != 0.5) {
+          double m = (y - 0.5) / (x - 0.5);
+          if (x < c && y < 1) {
+            *outX = (c + m*c) / (2*m*c + 2);
+            *outY = 1 - *outX/c;
+          } else if (x > 1 - c && y < 1) {
+            *outX = (c + m*c - 2) / (2*m*c - 2);
+            *outY = (*outX + c - 1) / c;
           }
         }
       }
