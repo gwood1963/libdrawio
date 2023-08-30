@@ -50,6 +50,7 @@ namespace libdrawio {
     librevenge::RVNGPropertyList getPoint(
       double x, double y, double cx, double cy, double angle
     );
+    void adjustEndpoint(double* outX, double*outY, MXCell shape);
     static int draw_count;
   };
 }
