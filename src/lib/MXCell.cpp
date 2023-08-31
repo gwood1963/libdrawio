@@ -499,7 +499,8 @@ namespace libdrawio {
         path.append(point); point.clear();
         propList.insert("svg:d", path);
         painter->drawPath(propList);
-      } else if (style.shape == STEP) {
+      }
+      else if (style.shape == STEP) {
         librevenge::RVNGPropertyListVector path;
         librevenge::RVNGPropertyList point;
         switch (style.direction) {
@@ -907,6 +908,187 @@ namespace libdrawio {
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
+      else if (style.shape == OR) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        librevenge::RVNGPropertyList control;
+        double x1, y1;
+        switch (style.direction) {
+        case NORTH:
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx; y = cy - ry; x1 = cx - rx; y1 = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy; x1 = cx + rx; y1 = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        case SOUTH:
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx; y = cy + ry; x1 = cx + rx; y1 = cx + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        case WEST:
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy; x1 = cx - rx; y1 = cx + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
+      else if (style.shape == XOR) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        librevenge::RVNGPropertyList control;
+        double x1, y1;
+        switch (style.direction) {
+        case NORTH:
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx; y = cy - ry; x1 = cx - rx; y1 = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry; x1 = cx; y1 = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          break;
+        case EAST:
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy; x1 = cx + rx; y1 = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy - ry; x1 = cx; y1 = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          break;
+        case SOUTH:
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx; y = cy + ry; x1 = cx + rx; y1 = cx + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry; x1 = cx; y1 = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          break;
+        case WEST:
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy; x1 = cx - rx; y1 = cx + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
     }
     if (!data.label.empty()) {
       propList.clear();
@@ -1028,6 +1210,8 @@ namespace libdrawio {
       else if (it->second == "trapezoid") style.shape = TRAPEZOID;
       else if (it->second == "card") style.shape = CARD;
       else if (it->second == "internalStorage") style.shape = STORAGE;
+      else if (it->second == "or") style.shape = OR;
+      else if (it->second == "xor") style.shape = XOR;
     }
     style.perimeter = default_perimeter.at(style.shape);
     it = style_m.find("direction"); if (it != style_m.end()) {
@@ -1072,10 +1256,12 @@ namespace libdrawio {
     }
     it = style_m.find("fillColor"); if (it != style_m.end()) {
       if (it->second == "none") style.fillColor = boost::none;
+      else if (it->second == "default");
       else style.fillColor = xmlStringToColor((xmlChar*)(it->second.c_str()));
     }
     it = style_m.find("strokeColor"); if (it != style_m.end()) {
       if (it->second == "none") style.strokeColor = boost::none;
+      else if (it->second == "default");
       else style.strokeColor = xmlStringToColor((xmlChar*)(it->second.c_str()));
     }
     it = style_m.find("startArrow"); if (it != style_m.end()) {

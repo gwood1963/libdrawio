@@ -10,6 +10,7 @@
 #include <memory>
 #include "DRAWIOTypes.h"
 #include <boost/lexical_cast.hpp>
+#include <string>
 
 namespace {
   extern "C" {
@@ -102,13 +103,13 @@ namespace libdrawio {
     std::string str((const char *)s);
     if (str[0] == '#') {
       if (str.length() != 7) {
-        DRAWIO_DEBUG_MSG(("Throwing XmlParserException\n"));
+        DRAWIO_DEBUG_MSG((("Throwing XmlParserException from XmlStringToColor, color=" + str + "\n").c_str()));
         throw XmlParserException();
       } else
         str.erase(str.begin());
     } else {
       if (str.length() != 6) {
-        DRAWIO_DEBUG_MSG(("Throwing XmlParserException\n"));
+        DRAWIO_DEBUG_MSG((("Throwing XmlParserException from XmlStringToColor, color=" + str + "\n").c_str()));
         throw XmlParserException();
       }
     }
@@ -131,7 +132,7 @@ namespace libdrawio {
     try {
       return boost::lexical_cast<long, const char *>((const char *)s);
     } catch (const boost::bad_lexical_cast &) {
-      DRAWIO_DEBUG_MSG(("Throwing XmlParserException\n"));
+      DRAWIO_DEBUG_MSG(("Throwing XmlParserException from XmlStringToLong\n"));
       throw XmlParserException();
     }
     return 0;
@@ -144,7 +145,7 @@ namespace libdrawio {
   double xmlStringToDouble(const xmlChar *s) try {
     return boost::lexical_cast<double, const char *>((const char *)s);
   } catch (const boost::bad_lexical_cast &) {
-    DRAWIO_DEBUG_MSG(("Throwing XmlParserException\n"));
+    DRAWIO_DEBUG_MSG(("Throwing XmlParserException from xmlStringToDouble\n"));
     throw XmlParserException();
   }
 
@@ -159,7 +160,7 @@ namespace libdrawio {
     else if (xmlStrEqual(s, BAD_CAST("false")) || xmlStrEqual(s, BAD_CAST("0")))
       value = false;
     else {
-      DRAWIO_DEBUG_MSG(("Throwing XmlParserException\n"));
+      DRAWIO_DEBUG_MSG(("Throwing XmlParserException from xmlStringToBool\n"));
       throw XmlParserException();
     }
     return value;
