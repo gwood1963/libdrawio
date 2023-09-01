@@ -13,8 +13,8 @@
 namespace libdrawio {
   enum Direction {
     NORTH,
-    SOUTH,
     EAST,
+    SOUTH,
     WEST
   };
 
@@ -42,11 +42,12 @@ namespace libdrawio {
     STEP,
     TRAPEZOID,
     CARD,
-    STORAGE,
+    INTERNAL_STORAGE,
     OR,
     XOR,
     DOCUMENT,
-    TAPE
+    TAPE,
+    DATA_STORAGE
   };
 
   enum Perimeter {
@@ -73,11 +74,12 @@ namespace libdrawio {
     {STEP, STEP_P},
     {TRAPEZOID, TRAPEZOID_P},
     {CARD, RECTANGLE_P},
-    {STORAGE, RECTANGLE_P},
+    {INTERNAL_STORAGE, RECTANGLE_P},
     {OR, RECTANGLE_P},
     {XOR, RECTANGLE_P},
     {DOCUMENT, RECTANGLE_P},
-    {TAPE, RECTANGLE_P}
+    {TAPE, RECTANGLE_P},
+    {DATA_STORAGE, RECTANGLE_P}
   };
 
   enum MarkerType {

@@ -794,7 +794,7 @@ namespace libdrawio {
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
-      else if (style.shape == STORAGE) {
+      else if (style.shape == INTERNAL_STORAGE) {
         librevenge::RVNGPropertyListVector path;
         librevenge::RVNGPropertyList point;
         x = cx - rx; y = cy - ry;
@@ -1293,6 +1293,138 @@ namespace libdrawio {
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
+      else if (style.shape == DATA_STORAGE) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        librevenge::RVNGPropertyList control;
+        double x1, y1;
+        switch (style.direction) {
+        case NORTH:
+          x = cx - rx; y = cy + ry - style.dataStorageSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          x1 = cx; y1 = y + 2 * style.dataStorageSize / 100;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry - style.dataStorageSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry - style.dataStorageSize/100;
+          x1 = cx; y1 = y + 2 * style.dataStorageSize / 100;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+          x = cx - rx + style.dataStorageSize/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          x1 = x - 2 * style.dataStorageSize / 100; y1 = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx - rx + style.dataStorageSize/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx + style.dataStorageSize/100; y = cy - ry;
+          x1 = x - 2 * style.dataStorageSize / 100; y1 = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          break;
+        case SOUTH:
+          x = cx + rx; y = cy - ry + style.dataStorageSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          x1 = cx; y1 = y - 2 * style.dataStorageSize / 100;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy - ry + style.dataStorageSize/100;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry + style.dataStorageSize/100;
+          x1 = cx; y1 = y - 2 * style.dataStorageSize / 100;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          break;
+        case WEST:
+          x = cx + rx - style.dataStorageSize/100; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy - ry;
+          x1 = x + 2 * style.dataStorageSize / 100; y1 = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx + rx - style.dataStorageSize/100; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx - style.dataStorageSize/100; y = cy + ry;
+          x1 = x + 2 * style.dataStorageSize / 100; y1 = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
     }
     if (!data.label.empty()) {
       propList.clear();
@@ -1413,11 +1545,12 @@ namespace libdrawio {
       else if (it->second == "step") style.shape = STEP;
       else if (it->second == "trapezoid") style.shape = TRAPEZOID;
       else if (it->second == "card") style.shape = CARD;
-      else if (it->second == "internalStorage") style.shape = STORAGE;
+      else if (it->second == "internalStorage") style.shape = INTERNAL_STORAGE;
       else if (it->second == "or") style.shape = OR;
       else if (it->second == "xor") style.shape = XOR;
       else if (it->second == "document") style.shape = DOCUMENT;
       else if (it->second == "tape") style.shape = TAPE;
+      else if (it->second == "dataStorage") style.shape = DATA_STORAGE;
     }
     style.perimeter = default_perimeter.at(style.shape);
     it = style_m.find("direction"); if (it != style_m.end()) {
@@ -1446,6 +1579,7 @@ namespace libdrawio {
       else if (style.shape == CARD) style.cardSize = std::stod(it->second);
       else if (style.shape == DOCUMENT) style.documentSize = std::stod(it->second);
       else if (style.shape == TAPE) style.tapeSize = std::stod(it->second);
+      else if (style.shape == DATA_STORAGE) style.dataStorageSize = std::stod(it->second);
     }
     it = style_m.find("base"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutWidth = std::stod(it->second);
@@ -1457,10 +1591,10 @@ namespace libdrawio {
       if (style.shape == CALLOUT) style.calloutTipPosition = std::stod(it->second);
     }
     it = style_m.find("dx"); if (it != style_m.end()) {
-      if (style.shape == STORAGE) style.storageX = std::stod(it->second);
+      if (style.shape == INTERNAL_STORAGE) style.storageX = std::stod(it->second);
     }
     it = style_m.find("dy"); if (it != style_m.end()) {
-      if (style.shape == STORAGE) style.storageY = std::stod(it->second);
+      if (style.shape == INTERNAL_STORAGE) style.storageY = std::stod(it->second);
     }
     it = style_m.find("fillColor"); if (it != style_m.end()) {
       if (it->second == "none") style.fillColor = boost::none;
