@@ -1089,6 +1089,210 @@ namespace libdrawio {
         propList.insert("svg:d", path);
         painter->drawPath(propList);
       }
+      else if (style.shape == DOCUMENT) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        librevenge::RVNGPropertyList control;
+        double x1, y1, offset;
+        switch (style.direction) {
+        case NORTH:
+          offset = 0.9 * geometry.width * style.documentSize / 100;
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx * (1 - style.documentSize); y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx * (1 - style.documentSize); y = cy;
+          x1 = x - offset; y1 = cy - ry/2;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx + rx * (1 - style.documentSize); y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+          offset = 0.9 * geometry.height * style.documentSize / 100;
+          x = cx - rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry * (1 - style.documentSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx; y = cy + ry * (1 - style.documentSize);
+          x1 = cx + rx/2; y1 = y - offset;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry * (1 - style.documentSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        case SOUTH:
+          offset = 0.9 * geometry.width * style.documentSize / 100;
+          x = cx + rx; y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx * (1 - style.documentSize); y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx * (1 - style.documentSize); y = cy;
+          x1 = x + offset; y1 = cy + ry/2;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx - rx * (1 - style.documentSize); y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        case WEST:
+          offset = 0.9 * geometry.height * style.documentSize / 100;
+          x = cx + rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy - ry * (1 - style.documentSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx; y = cy - ry * (1 - style.documentSize);
+          x1 = cx - rx/2; y1 = y + offset;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry * (1 - style.documentSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
+      else if (style.shape == TAPE) {
+        librevenge::RVNGPropertyListVector path;
+        librevenge::RVNGPropertyList point;
+        librevenge::RVNGPropertyList control;
+        double x1, y1, offset;
+        switch (style.direction) {
+        case NORTH:
+        case SOUTH:
+          offset = 0.9 * geometry.width * style.tapeSize / 100;
+          x = cx - rx * (1 - style.tapeSize); y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx - rx * (1 - style.tapeSize); y = cy;
+          x1 = x + offset; y1 = cy + ry/2;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx - rx * (1 - style.tapeSize); y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          x = cx + rx * (1 - style.tapeSize); y = cy - ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx + rx * (1 - style.tapeSize); y = cy;
+          x1 = x - offset; y1 = cy - ry/2;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx + rx * (1 - style.tapeSize); y = cy + ry;
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        case EAST:
+        case WEST:
+          offset = 0.9 * geometry.height * style.tapeSize / 100;
+          x = cx - rx; y = cy - ry * (1 - style.tapeSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "M");
+          path.append(point); point.clear();
+          x = cx; y = cy - ry * (1 - style.tapeSize);
+          x1 = cx - rx/2; y1 = y + offset;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy - ry * (1 - style.tapeSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          x = cx + rx; y = cy + ry * (1 - style.tapeSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "L");
+          path.append(point); point.clear();
+          x = cx; y = cy + ry * (1 - style.tapeSize);
+          x1 = cx + rx/2; y1 = y - offset;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear();
+          x = cx - rx; y = cy + ry * (1 - style.tapeSize);
+          point = getPoint(x, y, cx, cy, angle);
+          point.insert("librevenge:path-action", "T");
+          path.append(point); point.clear();
+          break;
+        }
+        point.insert("librevenge:path-action", "Z");
+        path.append(point); point.clear();
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
+      }
     }
     if (!data.label.empty()) {
       propList.clear();
@@ -1212,6 +1416,8 @@ namespace libdrawio {
       else if (it->second == "internalStorage") style.shape = STORAGE;
       else if (it->second == "or") style.shape = OR;
       else if (it->second == "xor") style.shape = XOR;
+      else if (it->second == "document") style.shape = DOCUMENT;
+      else if (it->second == "tape") style.shape = TAPE;
     }
     style.perimeter = default_perimeter.at(style.shape);
     it = style_m.find("direction"); if (it != style_m.end()) {
@@ -1238,6 +1444,8 @@ namespace libdrawio {
       }
       else if (style.shape == TRAPEZOID) style.trapezoidSize = std::stod(it->second);
       else if (style.shape == CARD) style.cardSize = std::stod(it->second);
+      else if (style.shape == DOCUMENT) style.documentSize = std::stod(it->second);
+      else if (style.shape == TAPE) style.tapeSize = std::stod(it->second);
     }
     it = style_m.find("base"); if (it != style_m.end()) {
       if (style.shape == CALLOUT) style.calloutWidth = std::stod(it->second);

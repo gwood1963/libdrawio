@@ -50,6 +50,8 @@ namespace libdrawio {
     double cardSize = 20;
     double storageX = 20;
     double storageY = 20;
+    double documentSize = 0.3;
+    double tapeSize = 0.4;
     bool fixedSize = true;
     boost::optional<MarkerType> startArrow;
     bool startFill = true;

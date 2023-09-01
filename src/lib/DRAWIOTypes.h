@@ -44,7 +44,9 @@ namespace libdrawio {
     CARD,
     STORAGE,
     OR,
-    XOR
+    XOR,
+    DOCUMENT,
+    TAPE
   };
 
   enum Perimeter {
@@ -73,7 +75,9 @@ namespace libdrawio {
     {CARD, RECTANGLE_P},
     {STORAGE, RECTANGLE_P},
     {OR, RECTANGLE_P},
-    {XOR, RECTANGLE_P}
+    {XOR, RECTANGLE_P},
+    {DOCUMENT, RECTANGLE_P},
+    {TAPE, RECTANGLE_P}
   };
 
   enum MarkerType {
