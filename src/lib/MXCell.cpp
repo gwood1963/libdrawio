@@ -953,7 +953,7 @@ namespace libdrawio {
           point = getPoint(x, y, cx, cy, angle);
           point.insert("librevenge:path-action", "M");
           path.append(point); point.clear();
-          x = cx; y = cy + ry; x1 = cx + rx; y1 = cx + ry;
+          x = cx; y = cy + ry; x1 = cx + rx; y1 = cy + ry;
           point = getPoint(x, y, cx, cy, angle);
           control = getPoint(x1, y1, cx, cy, angle);
           point.insert("svg:x1", control["svg:x"]->getDouble());
@@ -970,7 +970,7 @@ namespace libdrawio {
           point = getPoint(x, y, cx, cy, angle);
           point.insert("librevenge:path-action", "M");
           path.append(point); point.clear();
-          x = cx - rx; y = cy; x1 = cx - rx; y1 = cx + ry;
+          x = cx - rx; y = cy; x1 = cx - rx; y1 = cy + ry;
           point = getPoint(x, y, cx, cy, angle);
           control = getPoint(x1, y1, cx, cy, angle);
           point.insert("svg:x1", control["svg:x"]->getDouble());
@@ -1047,7 +1047,7 @@ namespace libdrawio {
           point = getPoint(x, y, cx, cy, angle);
           point.insert("librevenge:path-action", "M");
           path.append(point); point.clear();
-          x = cx; y = cy + ry; x1 = cx + rx; y1 = cx + ry;
+          x = cx; y = cy + ry; x1 = cx + rx; y1 = cy + ry;
           point = getPoint(x, y, cx, cy, angle);
           control = getPoint(x1, y1, cx, cy, angle);
           point.insert("svg:x1", control["svg:x"]->getDouble());
@@ -1071,17 +1071,24 @@ namespace libdrawio {
           point = getPoint(x, y, cx, cy, angle);
           point.insert("librevenge:path-action", "M");
           path.append(point); point.clear();
-          x = cx - rx; y = cy; x1 = cx - rx; y1 = cx + ry;
+          x = cx - rx; y = cy; x1 = cx - rx; y1 = cy + ry;
           point = getPoint(x, y, cx, cy, angle);
           control = getPoint(x1, y1, cx, cy, angle);
           point.insert("svg:x1", control["svg:x"]->getDouble());
           point.insert("svg:y1", control["svg:y"]->getDouble());
           point.insert("librevenge:path-action", "Q");
           path.append(point); point.clear(); control.clear();
-          x = cx + rx; y = cy + ry;
+          x = cx + rx; y = cy - ry;
           point = getPoint(x, y, cx, cy, angle);
           point.insert("librevenge:path-action", "T");
           path.append(point); point.clear();
+          x = cx + rx; y = cy + ry; x1 = cx; y1 = cy;
+          point = getPoint(x, y, cx, cy, angle);
+          control = getPoint(x1, y1, cx, cy, angle);
+          point.insert("svg:x1", control["svg:x"]->getDouble());
+          point.insert("svg:y1", control["svg:y"]->getDouble());
+          point.insert("librevenge:path-action", "Q");
+          path.append(point); point.clear(); control.clear();
           break;
         }
         point.insert("librevenge:path-action", "Z");
