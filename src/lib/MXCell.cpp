@@ -1541,9 +1541,18 @@ namespace libdrawio {
       else if (it->second == "south") style.portConstraint = SOUTH;
       else if (it->second == "west") style.portConstraint = WEST;
     }
-    it = style_m.find("ellipse"); if (it != style_m.end()) style.shape = ELLIPSE;
-    it = style_m.find("triangle"); if (it != style_m.end()) style.shape = TRIANGLE;
-    it = style_m.find("rhombus"); if (it != style_m.end()) style.shape = RHOMBUS;
+    it = style_m.find("ellipse"); if (it != style_m.end()) {
+      style.shape = ELLIPSE;
+      style.perimeter = ELLIPSE_P;
+    }
+    it = style_m.find("triangle"); if (it != style_m.end()) {
+      style.shape = TRIANGLE;
+      style.perimeter = TRIANGLE_P;
+    }
+    it = style_m.find("rhombus"); if (it != style_m.end()) {
+      style.shape = RHOMBUS;
+      style.perimeter = RHOMBUS_P;
+    }
     it = style_m.find("shape"); if (it != style_m.end()) {
       if (it->second == "callout") style.shape = CALLOUT;
       else if (it->second == "process") style.shape = PROCESS;
@@ -1559,7 +1568,16 @@ namespace libdrawio {
       else if (it->second == "tape") style.shape = TAPE;
       else if (it->second == "dataStorage") style.shape = DATA_STORAGE;
     }
-    style.perimeter = default_perimeter.at(style.shape);
+    it = style_m.find("perimeter"); if (it != style_m.end()) {
+      if (it->second == "ellipsePerimeter") style.perimeter = ELLIPSE_P;
+      else if (it->second == "trianglePerimeter") style.perimeter = TRIANGLE_P;
+      else if (it->second == "calloutPerimeter") style.perimeter = CALLOUT_P;
+      else if (it->second == "rhombusPerimeter") style.perimeter = RHOMBUS_P;
+      else if (it->second == "parallelogramPerimeter") style.perimeter = PARALLELOGRAM_P;
+      else if (it->second == "hexagonPerimeter2") style.perimeter = HEXAGON_P;
+      else if (it->second == "stepPerimeter") style.perimeter = STEP_P;
+      else if (it->second == "trapezoidPerimeter") style.perimeter = TRAPEZOID_P;
+    }
     it = style_m.find("direction"); if (it != style_m.end()) {
       if (it->second == "north") style.direction = NORTH;
       else if (it->second == "east") style.direction = EAST;

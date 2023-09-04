@@ -62,26 +62,6 @@ namespace libdrawio {
     TRAPEZOID_P,
   };
 
-  const std::map<Shape, Perimeter> default_perimeter = {
-    {RECTANGLE, RECTANGLE_P},
-    {ELLIPSE, ELLIPSE_P},
-    {TRIANGLE, TRIANGLE_P},
-    {CALLOUT, CALLOUT_P},
-    {PROCESS, RECTANGLE_P},
-    {RHOMBUS, RHOMBUS_P},
-    {PARALLELOGRAM, PARALLELOGRAM_P},
-    {HEXAGON, HEXAGON_P},
-    {STEP, STEP_P},
-    {TRAPEZOID, TRAPEZOID_P},
-    {CARD, RECTANGLE_P},
-    {INTERNAL_STORAGE, RECTANGLE_P},
-    {OR, RECTANGLE_P},
-    {XOR, RECTANGLE_P},
-    {DOCUMENT, RECTANGLE_P},
-    {TAPE, RECTANGLE_P},
-    {DATA_STORAGE, RECTANGLE_P}
-  };
-
   enum MarkerType {
     CLASSIC
   };
