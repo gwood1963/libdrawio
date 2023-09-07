@@ -1549,8 +1549,10 @@ namespace libdrawio {
       style.exitDx = std::stod(it->second);
     it = style_m.find("exitDy"); if (it != style_m.end())
       style.exitDy = std::stod(it->second);
-    style.startFixed = style.exitX.has_value() && style.exitY.has_value();
-    style.endFixed = style.entryX.has_value() && style.entryY.has_value();
+    style.startFixed =
+      (style.exitX.has_value() && style.exitY.has_value()) || source_id.empty();
+    style.endFixed =
+      (style.entryX.has_value() && style.entryY.has_value()) || target_id.empty();
     it = style_m.find("sourcePortConstraint"); if (it != style_m.end()) {
       if (it->second == "north") style.sourcePortConstraint = NORTH;
       else if (it->second == "east") style.sourcePortConstraint = EAST;
@@ -1688,6 +1690,218 @@ namespace libdrawio {
     // necessary because draw.io doesn't store endpoint coordinates
     // if the edge is attached to a vertex.
     if (!edge) return;
+    if (!source_id.empty() && style.startFixed) {
+      MXCell source = id_map[source_id];
+      double outX = style.exitX.get(); double outY = style.exitY.get();
+      adjustEndpoint(&outX, &outY, source);
+      double x, y;
+      switch (source.style.direction) {
+      case EAST:
+        x = (source.geometry.x
+             + (outX * source.geometry.width)
+             + style.exitDx);
+        y = (source.geometry.y
+             + (outY * source.geometry.height)
+             + style.exitDy);
+        break;
+      case WEST:
+        x = (source.geometry.x
+             + ((1 - outX) * source.geometry.width)
+             - style.exitDx);
+        y = (source.geometry.y
+             + ((1 - outY) * source.geometry.height)
+             - style.exitDy);
+        break;
+      case NORTH:
+        x = (source.geometry.x
+             + (outY * source.geometry.width)
+             + style.exitDy);
+        y = (source.geometry.y
+             + ((1 - outX) * source.geometry.height)
+             - style.exitDx);
+        break;
+      case SOUTH:
+        x = (source.geometry.x
+             + ((1 - outY) * source.geometry.width)
+             - style.exitDy);
+        y = (source.geometry.y
+             + (outX * source.geometry.height)
+             + style.exitDx);
+        break;
+      }
+      double cx = source.geometry.x + source.geometry.width / 2;
+      double cy = source.geometry.y + source.geometry.height / 2;
+      double angle = -source.style.rotation * boost::math::double_constants::pi / 180;
+      librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
+      geometry.sourcePoint.x = point["svg:x"]->getDouble();
+      geometry.sourcePoint.y = point["svg:y"]->getDouble();
+    }
+    if (!target_id.empty() && style.endFixed) {
+      MXCell target = id_map[target_id];
+      double outX = style.entryX.get(); double outY = style.entryY.get();
+      adjustEndpoint(&outX, &outY, target);
+      double x, y;
+      switch (target.style.direction) {
+      case EAST:
+        x = (target.geometry.x
+             + (outX * target.geometry.width)
+             + style.entryDx);
+        y = (target.geometry.y
+             + (outY * target.geometry.height)
+             + style.entryDy);
+        break;
+      case WEST:
+        x = (target.geometry.x
+             + ((1 - outX) * target.geometry.width)
+             - style.entryDx);
+        y = (target.geometry.y
+             + ((1 - outY) * target.geometry.height)
+             - style.entryDy);
+        break;
+      case NORTH:
+        x = (target.geometry.x
+             + (outY * target.geometry.width)
+             + style.entryDy);
+        y = (target.geometry.y
+             + ((1 - outX) * target.geometry.height)
+             - style.entryDx);
+        break;
+      case SOUTH:
+        x = (target.geometry.x
+             + ((1 - outY) * target.geometry.width)
+             - style.entryDy);
+        y = (target.geometry.y
+             + (outX * target.geometry.height)
+             + style.entryDx);
+        break;
+      }
+      double cx = target.geometry.x + target.geometry.width / 2;
+      double cy = target.geometry.y + target.geometry.height / 2;
+      double angle = -target.style.rotation * boost::math::double_constants::pi / 180;
+      librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
+      geometry.targetPoint.x = point["svg:x"]->getDouble();
+      geometry.targetPoint.y = point["svg:y"]->getDouble();
+    }
+    if (style.edgeStyle == STRAIGHT) {
+      double startX, startY, endX, endY;
+      if (style.startFixed) {
+        startX = geometry.sourcePoint.x; startY = geometry.sourcePoint.y;
+      } else {
+        MXCell source = id_map[source_id];
+        startX = source.geometry.x + source.geometry.width / 2;
+        startY = source.geometry.y + source.geometry.height / 2;
+      }
+      if (style.endFixed) {
+        endX = geometry.targetPoint.x; endY = geometry.targetPoint.y;
+      } else {
+        MXCell target = id_map[target_id];
+        endX = target.geometry.x + target.geometry.width / 2;
+        endY = target.geometry.y + target.geometry.height / 2;
+      }
+      double angle = std::atan2(endY - startY, endX - startX);
+      if (!style.startFixed) {
+        MXCell source = id_map[source_id];
+        double facing_angle =
+          boost::math::double_constants::pi * ((int)source.style.direction - 1) / 2;
+        angle -= facing_angle;
+        angle -= source.style.rotation * boost::math::double_constants::pi / 180;
+        double m = std::tan(angle);
+        double outX, outY;
+        if (std::abs(m) > 1) {
+          outY = endY < startY ? 0  : 1;
+          outX = 0.5 + (endY < startY ? -0.5 : 0.5) / m;
+        } else {
+          outX = endX < startX ? 0 : 1;
+          outY = 0.5 + m * (endX < startX ? -0.5 : 0.5);
+        }
+        adjustEndpoint(&outX, &outY, source);
+        double x, y;
+        switch (source.style.direction) {
+        case EAST:
+          x = (source.geometry.x
+               + (outX * source.geometry.width));
+          y = (source.geometry.y
+               + (outY * source.geometry.height));
+          break;
+        case WEST:
+          x = (source.geometry.x
+               + ((1 - outX) * source.geometry.width));
+          y = (source.geometry.y
+               + ((1 - outY) * source.geometry.height));
+          break;
+        case NORTH:
+          x = (source.geometry.x
+               + (outY * source.geometry.width));
+          y = (source.geometry.y
+               + ((1 - outX) * source.geometry.height));
+          break;
+        case SOUTH:
+          x = (source.geometry.x
+               + ((1 - outY) * source.geometry.width));
+          y = (source.geometry.y
+               + (outX * source.geometry.height));
+          break;
+        }
+        double cx = source.geometry.x + source.geometry.width / 2;
+        double cy = source.geometry.y + source.geometry.height / 2;
+        angle = -source.style.rotation * boost::math::double_constants::pi / 180;
+        librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
+        geometry.sourcePoint.x = point["svg:x"]->getDouble();
+        geometry.sourcePoint.y = point["svg:y"]->getDouble();
+      }
+      if (!style.endFixed) {
+        MXCell target = id_map[target_id];
+        double facing_angle =
+          boost::math::double_constants::pi * ((int)target.style.direction - 1) / 2;
+        angle += boost::math::double_constants::pi;
+        angle -= facing_angle;
+        angle -= target.style.rotation * boost::math::double_constants::pi / 180;
+        double m = std::tan(angle);
+        double outX, outY;
+        if (std::abs(m) > 1) {
+          outY = endY < startY ? 1  : 0;
+          outX = 0.5 + (endY < startY ? 0.5 : -0.5) / m;
+        } else {
+          outX = endX < startX ? 1 : 0;
+          outY = 0.5 + m * (endX < startX ? 0.5 : -0.5);
+        }
+        adjustEndpoint(&outX, &outY, target);
+        double x, y;
+        switch (target.style.direction) {
+        case EAST:
+          x = (target.geometry.x
+               + (outX * target.geometry.width));
+          y = (target.geometry.y
+               + (outY * target.geometry.height));
+          break;
+        case WEST:
+          x = (target.geometry.x
+               + ((1 - outX) * target.geometry.width));
+          y = (target.geometry.y
+               + ((1 - outY) * target.geometry.height));
+          break;
+        case NORTH:
+          x = (target.geometry.x
+               + (outY * target.geometry.width));
+          y = (target.geometry.y
+               + ((1 - outX) * target.geometry.height));
+          break;
+        case SOUTH:
+          x = (target.geometry.x
+               + ((1 - outY) * target.geometry.width));
+          y = (target.geometry.y
+               + (outX * target.geometry.height));
+          break;
+        }
+        double cx = target.geometry.x + target.geometry.width / 2;
+        double cy = target.geometry.y + target.geometry.height / 2;
+        angle = -target.style.rotation * boost::math::double_constants::pi / 180;
+        librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
+        geometry.targetPoint.x = point["svg:x"]->getDouble();
+        geometry.targetPoint.y = point["svg:y"]->getDouble();
+      }
+    }
+    else if (style.edgeStyle == ORTHOGONAL) {
     if (!source_id.empty()) {
       MXCell source = id_map[source_id];
       bool fixed = style.exitX.has_value() && style.exitY.has_value();
@@ -1828,6 +2042,7 @@ namespace libdrawio {
         geometry.targetPoint.x = point["svg:x"]->getDouble();
         geometry.targetPoint.y = point["svg:y"]->getDouble();
       }
+    }
     }
   }
 

@@ -12,7 +12,7 @@
 
 namespace libdrawio {
   enum Direction {
-    NORTH,
+    NORTH = 0,
     EAST,
     SOUTH,
     WEST
