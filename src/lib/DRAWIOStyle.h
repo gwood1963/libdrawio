@@ -4,6 +4,7 @@
 #define DRAWIOSTYLE_H
 
 #include <boost/optional.hpp>
+#include <boost/optional/optional.hpp>
 #include "DRAWIOTypes.h"
 
 namespace libdrawio {
@@ -37,7 +38,12 @@ namespace libdrawio {
     boost::optional<Direction> targetPortConstraint;
     Shape shape = RECTANGLE;
     Perimeter perimeter = RECTANGLE_P;
+    EdgeStyle edgeStyle = STRAIGHT;
     Direction direction = EAST;
+    boost::optional<Direction> startDir;
+    boost::optional<Direction> endDir;
+    bool startFixed;
+    bool endFixed;
     double calloutLength = 30;
     double calloutWidth = 20;
     double calloutPosition = 0.5;

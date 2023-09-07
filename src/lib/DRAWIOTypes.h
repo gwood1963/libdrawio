@@ -62,6 +62,11 @@ namespace libdrawio {
     TRAPEZOID_P,
   };
 
+  enum EdgeStyle {
+    STRAIGHT,
+    ORTHOGONAL
+  };
+
   enum MarkerType {
     CLASSIC
   };

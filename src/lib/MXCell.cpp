@@ -2,6 +2,7 @@
 
 #include "MXCell.h"
 #include "DRAWIOTypes.h"
+#include "MXGeometry.h"
 #include "libdrawio_xml.h"
 #include "librevenge/RVNGPropertyList.h"
 #include "librevenge/RVNGPropertyListVector.h"
@@ -1472,15 +1473,40 @@ namespace libdrawio {
   librevenge::RVNGPropertyListVector MXCell::getPath() {
     librevenge::RVNGPropertyListVector out;
     librevenge::RVNGPropertyList i;
-    i.insert("librevenge:path-action", "M");
-    i.insert("svg:x", geometry.sourcePoint.x / 100.);
-    i.insert("svg:y", geometry.sourcePoint.y / 100.);
-    out.append(i);
-    i.clear();
-    i.insert("librevenge:path-action", "L");
-    i.insert("svg:x", geometry.targetPoint.x / 100.);
-    i.insert("svg:y", geometry.targetPoint.y / 100.);
-    out.append(i);
+    if (style.edgeStyle == STRAIGHT) {
+      i.insert("librevenge:path-action", "M");
+      i.insert("svg:x", geometry.sourcePoint.x / 100.);
+      i.insert("svg:y", geometry.sourcePoint.y / 100.);
+      out.append(i); i.clear();
+      for (unsigned int j = 0; j < geometry.points.size(); j++) {
+        MXPoint p = geometry.points[j];
+        i.insert("librevenge:path-action", "L");
+        i.insert("svg:x", p.x / 100.);
+        i.insert("svg:y", p.y / 100.);
+        out.append(i); i.clear();
+      }
+      i.insert("librevenge:path-action", "L");
+      i.insert("svg:x", geometry.targetPoint.x / 100.);
+      i.insert("svg:y", geometry.targetPoint.y / 100.);
+      out.append(i);
+    }
+    else if (style.edgeStyle == ORTHOGONAL) {
+      i.insert("librevenge:path-action", "M");
+      i.insert("svg:x", geometry.sourcePoint.x / 100.);
+      i.insert("svg:y", geometry.sourcePoint.y / 100.);
+      out.append(i); i.clear();
+      for (unsigned int j = 0; j < geometry.points.size(); j++) {
+        MXPoint p = geometry.points[j];
+        i.insert("librevenge:path-action", "L");
+        i.insert("svg:x", p.x / 100.);
+        i.insert("svg:y", p.y / 100.);
+        out.append(i); i.clear();
+      }
+      i.insert("librevenge:path-action", "L");
+      i.insert("svg:x", geometry.targetPoint.x / 100.);
+      i.insert("svg:y", geometry.targetPoint.y / 100.);
+      out.append(i); i.clear();
+    }
     return out;
   }
 
@@ -1523,6 +1549,8 @@ namespace libdrawio {
       style.exitDx = std::stod(it->second);
     it = style_m.find("exitDy"); if (it != style_m.end())
       style.exitDy = std::stod(it->second);
+    style.startFixed = style.exitX.has_value() && style.exitY.has_value();
+    style.endFixed = style.entryX.has_value() && style.entryY.has_value();
     it = style_m.find("sourcePortConstraint"); if (it != style_m.end()) {
       if (it->second == "north") style.sourcePortConstraint = NORTH;
       else if (it->second == "east") style.sourcePortConstraint = EAST;
@@ -1569,7 +1597,8 @@ namespace libdrawio {
       else if (it->second == "dataStorage") style.shape = DATA_STORAGE;
     }
     it = style_m.find("perimeter"); if (it != style_m.end()) {
-      if (it->second == "ellipsePerimeter") style.perimeter = ELLIPSE_P;
+      if (it->second == "rectanglePerimeter") style.perimeter = RECTANGLE_P;
+      else if (it->second == "ellipsePerimeter") style.perimeter = ELLIPSE_P;
       else if (it->second == "trianglePerimeter") style.perimeter = TRIANGLE_P;
       else if (it->second == "calloutPerimeter") style.perimeter = CALLOUT_P;
       else if (it->second == "rhombusPerimeter") style.perimeter = RHOMBUS_P;
@@ -1649,6 +1678,9 @@ namespace libdrawio {
       style.endSize = xmlStringToDouble((xmlChar*)(it->second.c_str()));
     it = style_m.find("rotation"); if (it != style_m.end())
       style.rotation = xmlStringToDouble((xmlChar*)(it->second.c_str()));
+    it = style_m.find("edgeStyle"); if (it != style_m.end()) {
+      if (it->second == "orthogonalEdgeStyle") style.edgeStyle = ORTHOGONAL;
+    }
   }
 
   void MXCell::setEndPoints(std::map<librevenge::RVNGString, MXCell> id_map) {
