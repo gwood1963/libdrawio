@@ -1692,97 +1692,16 @@ namespace libdrawio {
     if (!edge) return;
     if (!source_id.empty() && style.startFixed) {
       MXCell source = id_map[source_id];
-      double outX = style.exitX.get(); double outY = style.exitY.get();
-      adjustEndpoint(&outX, &outY, source);
-      double x, y;
-      switch (source.style.direction) {
-      case EAST:
-        x = (source.geometry.x
-             + (outX * source.geometry.width)
-             + style.exitDx);
-        y = (source.geometry.y
-             + (outY * source.geometry.height)
-             + style.exitDy);
-        break;
-      case WEST:
-        x = (source.geometry.x
-             + ((1 - outX) * source.geometry.width)
-             - style.exitDx);
-        y = (source.geometry.y
-             + ((1 - outY) * source.geometry.height)
-             - style.exitDy);
-        break;
-      case NORTH:
-        x = (source.geometry.x
-             + (outY * source.geometry.width)
-             + style.exitDy);
-        y = (source.geometry.y
-             + ((1 - outX) * source.geometry.height)
-             - style.exitDx);
-        break;
-      case SOUTH:
-        x = (source.geometry.x
-             + ((1 - outY) * source.geometry.width)
-             - style.exitDy);
-        y = (source.geometry.y
-             + (outX * source.geometry.height)
-             + style.exitDx);
-        break;
-      }
-      double cx = source.geometry.x + source.geometry.width / 2;
-      double cy = source.geometry.y + source.geometry.height / 2;
-      double angle = -source.style.rotation * boost::math::double_constants::pi / 180;
-      librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
-      geometry.sourcePoint.x = point["svg:x"]->getDouble();
-      geometry.sourcePoint.y = point["svg:y"]->getDouble();
+      setEndpointInShape(style.exitX.get(), style.exitY.get(), source,
+                         geometry.sourcePoint, style.exitDx, style.exitDy);
     }
     if (!target_id.empty() && style.endFixed) {
       MXCell target = id_map[target_id];
-      double outX = style.entryX.get(); double outY = style.entryY.get();
-      adjustEndpoint(&outX, &outY, target);
-      double x, y;
-      switch (target.style.direction) {
-      case EAST:
-        x = (target.geometry.x
-             + (outX * target.geometry.width)
-             + style.entryDx);
-        y = (target.geometry.y
-             + (outY * target.geometry.height)
-             + style.entryDy);
-        break;
-      case WEST:
-        x = (target.geometry.x
-             + ((1 - outX) * target.geometry.width)
-             - style.entryDx);
-        y = (target.geometry.y
-             + ((1 - outY) * target.geometry.height)
-             - style.entryDy);
-        break;
-      case NORTH:
-        x = (target.geometry.x
-             + (outY * target.geometry.width)
-             + style.entryDy);
-        y = (target.geometry.y
-             + ((1 - outX) * target.geometry.height)
-             - style.entryDx);
-        break;
-      case SOUTH:
-        x = (target.geometry.x
-             + ((1 - outY) * target.geometry.width)
-             - style.entryDy);
-        y = (target.geometry.y
-             + (outX * target.geometry.height)
-             + style.entryDx);
-        break;
-      }
-      double cx = target.geometry.x + target.geometry.width / 2;
-      double cy = target.geometry.y + target.geometry.height / 2;
-      double angle = -target.style.rotation * boost::math::double_constants::pi / 180;
-      librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
-      geometry.targetPoint.x = point["svg:x"]->getDouble();
-      geometry.targetPoint.y = point["svg:y"]->getDouble();
+      setEndpointInShape(style.entryX.get(), style.entryY.get(), target,
+                         geometry.targetPoint, style.entryDx, style.entryDy);
     }
     if (style.edgeStyle == STRAIGHT) {
+      if (style.startFixed && style.endFixed) return;
       double startX, startY, endX, endY;
       if (style.startFixed) {
         startX = geometry.sourcePoint.x; startY = geometry.sourcePoint.y;
@@ -1798,9 +1717,15 @@ namespace libdrawio {
         endX = target.geometry.x + target.geometry.width / 2;
         endY = target.geometry.y + target.geometry.height / 2;
       }
-      double angle = std::atan2(endY - startY, endX - startX);
       if (!style.startFixed) {
         MXCell source = id_map[source_id];
+        double inX, inY;
+        if (geometry.points.empty()) {
+          inX = endX; inY = endY;
+        } else {
+          inX = geometry.points[0].x; inY = geometry.points[0].y;
+        }
+        double angle = std::atan2(inY - startY, inX - startX);
         double facing_angle =
           boost::math::double_constants::pi * ((int)source.style.direction - 1) / 2;
         angle -= facing_angle;
@@ -1808,49 +1733,23 @@ namespace libdrawio {
         double m = std::tan(angle);
         double outX, outY;
         if (std::abs(m) > 1) {
-          outY = endY < startY ? 0  : 1;
-          outX = 0.5 + (endY < startY ? -0.5 : 0.5) / m;
+          outY = inY < startY ? 0  : 1;
+          outX = 0.5 + (inY < startY ? -0.5 : 0.5) / m;
         } else {
-          outX = endX < startX ? 0 : 1;
-          outY = 0.5 + m * (endX < startX ? -0.5 : 0.5);
+          outX = inX < startX ? 0 : 1;
+          outY = 0.5 + m * (inX < startX ? -0.5 : 0.5);
         }
-        adjustEndpoint(&outX, &outY, source);
-        double x, y;
-        switch (source.style.direction) {
-        case EAST:
-          x = (source.geometry.x
-               + (outX * source.geometry.width));
-          y = (source.geometry.y
-               + (outY * source.geometry.height));
-          break;
-        case WEST:
-          x = (source.geometry.x
-               + ((1 - outX) * source.geometry.width));
-          y = (source.geometry.y
-               + ((1 - outY) * source.geometry.height));
-          break;
-        case NORTH:
-          x = (source.geometry.x
-               + (outY * source.geometry.width));
-          y = (source.geometry.y
-               + ((1 - outX) * source.geometry.height));
-          break;
-        case SOUTH:
-          x = (source.geometry.x
-               + ((1 - outY) * source.geometry.width));
-          y = (source.geometry.y
-               + (outX * source.geometry.height));
-          break;
-        }
-        double cx = source.geometry.x + source.geometry.width / 2;
-        double cy = source.geometry.y + source.geometry.height / 2;
-        angle = -source.style.rotation * boost::math::double_constants::pi / 180;
-        librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
-        geometry.sourcePoint.x = point["svg:x"]->getDouble();
-        geometry.sourcePoint.y = point["svg:y"]->getDouble();
+        setEndpointInShape(outX, outY, source, geometry.sourcePoint);
       }
       if (!style.endFixed) {
         MXCell target = id_map[target_id];
+        double inX, inY;
+        if (geometry.points.empty()) {
+          inX = startX; inY = startY;
+        } else {
+          inX = geometry.points.back().x; inY = geometry.points.back().y;
+        }
+        double angle = std::atan2(endY - inY, endX - inX);
         double facing_angle =
           boost::math::double_constants::pi * ((int)target.style.direction - 1) / 2;
         angle += boost::math::double_constants::pi;
@@ -1859,312 +1758,254 @@ namespace libdrawio {
         double m = std::tan(angle);
         double outX, outY;
         if (std::abs(m) > 1) {
-          outY = endY < startY ? 1  : 0;
-          outX = 0.5 + (endY < startY ? 0.5 : -0.5) / m;
+          outY = endY < inY ? 1  : 0;
+          outX = 0.5 + (endY < inY ? 0.5 : -0.5) / m;
         } else {
-          outX = endX < startX ? 1 : 0;
-          outY = 0.5 + m * (endX < startX ? 0.5 : -0.5);
+          outX = endX < inX ? 1 : 0;
+          outY = 0.5 + m * (endX < inX ? 0.5 : -0.5);
         }
-        adjustEndpoint(&outX, &outY, target);
-        double x, y;
-        switch (target.style.direction) {
-        case EAST:
-          x = (target.geometry.x
-               + (outX * target.geometry.width));
-          y = (target.geometry.y
-               + (outY * target.geometry.height));
-          break;
-        case WEST:
-          x = (target.geometry.x
-               + ((1 - outX) * target.geometry.width));
-          y = (target.geometry.y
-               + ((1 - outY) * target.geometry.height));
-          break;
-        case NORTH:
-          x = (target.geometry.x
-               + (outY * target.geometry.width));
-          y = (target.geometry.y
-               + ((1 - outX) * target.geometry.height));
-          break;
-        case SOUTH:
-          x = (target.geometry.x
-               + ((1 - outY) * target.geometry.width));
-          y = (target.geometry.y
-               + (outX * target.geometry.height));
-          break;
-        }
-        double cx = target.geometry.x + target.geometry.width / 2;
-        double cy = target.geometry.y + target.geometry.height / 2;
-        angle = -target.style.rotation * boost::math::double_constants::pi / 180;
-        librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
-        geometry.targetPoint.x = point["svg:x"]->getDouble();
-        geometry.targetPoint.y = point["svg:y"]->getDouble();
+        setEndpointInShape(outX, outY, target, geometry.targetPoint);
       }
     }
     else if (style.edgeStyle == ORTHOGONAL) {
-    if (!source_id.empty()) {
-      MXCell source = id_map[source_id];
-      bool fixed = style.exitX.has_value() && style.exitY.has_value();
-      if (!fixed) {
-        if (!target_id.empty()) {
-          MXCell target = id_map.at(target_id);
-          style.exitX =
-            (source.geometry.x + source.geometry.width < target.geometry.x) ? 1 :
-            (source.geometry.x > target.geometry.x + target.geometry.width) ? 0 : 0.5;
-          if (style.exitX.get() == 0.5) {
-            style.exitY = (source.geometry.y < target.geometry.y) ? 1 : 0;
-          } else style.exitY = 0.5;
-        } else { // target point specified
-          style.exitX =
-            (source.geometry.x + source.geometry.width < geometry.targetPoint.x) ? 1 :
-            (source.geometry.x > geometry.targetPoint.x) ? 0 : 0.5;
-          if (style.exitX.get() == 0.5)
-            style.exitY = (source.geometry.y < geometry.targetPoint.y) ? 1 : 0;
-          else style.exitY = 0.5;
-        }
-        geometry.sourcePoint.x =
-          source.geometry.x + (style.exitX.get() * source.geometry.width);
-        geometry.sourcePoint.y =
-          source.geometry.y + (style.exitY.get() * source.geometry.height);
-      }
-      else {
-        double outX = style.exitX.get(); double outY = style.exitY.get();
-        adjustEndpoint(&outX, &outY, source);
-        double x, y;
-        switch (source.style.direction) {
-        case EAST:
-          x = (source.geometry.x
-               + (outX * source.geometry.width)
-               + style.exitDx);
-          y = (source.geometry.y
-               + (outY * source.geometry.height)
-               + style.exitDy);
-          break;
-        case WEST:
-          x = (source.geometry.x
-               + ((1 - outX) * source.geometry.width)
-               - style.exitDx);
-          y = (source.geometry.y
-               + ((1 - outY) * source.geometry.height)
-               - style.exitDy);
-          break;
-        case NORTH:
-          x = (source.geometry.x
-               + (outY * source.geometry.width)
-               + style.exitDy);
-          y = (source.geometry.y
-               + ((1 - outX) * source.geometry.height)
-               - style.exitDx);
-          break;
-        case SOUTH:
-          x = (source.geometry.x
-               + ((1 - outY) * source.geometry.width)
-               - style.exitDy);
-          y = (source.geometry.y
-               + (outX * source.geometry.height)
-               + style.exitDx);
-          break;
-        }
-        double cx = source.geometry.x + source.geometry.width / 2;
-        double cy = source.geometry.y + source.geometry.height / 2;
-        double angle = -source.style.rotation * boost::math::double_constants::pi / 180;
-        librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
-        geometry.sourcePoint.x = point["svg:x"]->getDouble();
-        geometry.sourcePoint.y = point["svg:y"]->getDouble();
-      }
-    }
-    if (!target_id.empty()) {
-      MXCell target = id_map[target_id];
-      bool fixed = style.entryX.has_value() && style.entryY.has_value();
-      if (!fixed) {
-        if (!source_id.empty()) {
-          MXCell source = id_map.at(source_id);
-          style.entryY =
-            (target.geometry.y > source.geometry.y + source.geometry.height) ? 0 :
-            (target.geometry.y + target.geometry.height < source.geometry.y) ? 1 : 0.5;
-          if (style.entryY.get() == 0.5)
-            style.entryX = (target.geometry.x < source.geometry.x) ? 1 : 0;
-          else style.entryX = 0.5;
-        } else { // source point specified
-          style.entryY =
-            (target.geometry.y + target.geometry.height < geometry.sourcePoint.y) ? 1 :
-            (target.geometry.y > geometry.sourcePoint.y) ? 0 : 0.5;
-          if (style.entryY.get() == 0.5)
-            style.entryX = (target.geometry.x < geometry.sourcePoint.x) ? 1 : 0;
-          else style.entryX = 0.5;
-        }
-        geometry.targetPoint.x =
-          target.geometry.x + (style.entryX.get() * target.geometry.width);
-        geometry.targetPoint.y =
-          target.geometry.y + (style.entryY.get() * target.geometry.height);
+      bool source_shape = !source_id.empty(); bool target_shape = !target_id.empty();
+      double startX, startY, startWidth, startHeight, endX, endY, endWidth, endHeight;
+      if (source_shape) {
+        MXCell source = id_map[source_id];
+        startX = source.geometry.x; startY = source.geometry.y;
+        startWidth = source.geometry.width; startHeight = source.geometry.height;
       } else {
-        double outX = style.entryX.get(); double outY = style.entryY.get();
-        adjustEndpoint(&outX, &outY, target);
-        double x, y;
-        switch (target.style.direction) {
-        case EAST:
-          x = (target.geometry.x
-               + (outX * target.geometry.width)
-               + style.entryDx);
-          y = (target.geometry.y
-               + (outY * target.geometry.height)
-               + style.entryDy);
-          break;
-        case WEST:
-          x = (target.geometry.x
-               + ((1 - outX) * target.geometry.width)
-               - style.entryDx);
-          y = (target.geometry.y
-               + ((1 - outY) * target.geometry.height)
-               - style.entryDy);
-          break;
-        case NORTH:
-          x = (target.geometry.x
-               + (outY * target.geometry.width)
-               + style.entryDy);
-          y = (target.geometry.y
-               + ((1 - outX) * target.geometry.height)
-               - style.entryDx);
-          break;
-        case SOUTH:
-          x = (target.geometry.x
-               + ((1 - outY) * target.geometry.width)
-               - style.entryDy);
-          y = (target.geometry.y
-               + (outX * target.geometry.height)
-               + style.entryDx);
-          break;
-        }
-        double cx = target.geometry.x + target.geometry.width / 2;
-        double cy = target.geometry.y + target.geometry.height / 2;
-        double angle = -target.style.rotation * boost::math::double_constants::pi / 180;
-        librevenge::RVNGPropertyList point = getPoint(x, y, cx, cy, angle);
-        geometry.targetPoint.x = point["svg:x"]->getDouble();
-        geometry.targetPoint.y = point["svg:y"]->getDouble();
+        startX = geometry.sourcePoint.x; startY = geometry.sourcePoint.y;
+        startWidth = 0; startHeight = 0;
       }
-    }
+      if (target_shape) {
+        MXCell target = id_map[target_id];
+        endX = target.geometry.x; endY = target.geometry.y;
+        endWidth = target.geometry.width; endHeight = target.geometry.height;
+      } else {
+        endX = geometry.sourcePoint.x; endY = geometry.sourcePoint.y;
+        endWidth = 0; endHeight = 0;
+      }
+      style.startDir = (endX + endWidth < startX   ? WEST  :
+                        endX > startX + startWidth ? EAST  :
+                        endY <= startY             ? NORTH :
+                                                     SOUTH);
+      style.endDir = (endY + endHeight < startY   ? SOUTH :
+                      endY > startY + startHeight ? NORTH :
+                      endX + endWidth < startX    ? EAST  :
+                      endX > startX + startWidth  ? WEST  :
+                      endX != startX              ? style.startDir :
+                      style.startDir == NORTH     ? SOUTH :
+                                                    NORTH);
+      if (!style.startFixed) {
+        MXCell source = id_map[source_id];
+        double angle =
+          boost::math::double_constants::pi * ((int)style.startDir.get() - 1) / 2;
+        double facing_angle =
+          boost::math::double_constants::pi * ((int)source.style.direction - 1) / 2;
+        angle -= facing_angle;
+        angle -= source.style.rotation * boost::math::double_constants::pi / 180;
+        double m = std::tan(angle);
+        double outX, outY;
+        if (std::abs(m) > 1) {
+          outY = style.startDir == NORTH ? 0 : 1;
+          outX = 0.5 + (style.startDir == NORTH ? -0.5 : 0.5) / m;
+        } else {
+          outX = style.startDir == WEST ? 0 : 1;
+          outY = 0.5 + m * (style.startDir == WEST ? -0.5 : 0.5);
+        }
+        setEndpointInShape(outX, outY, source, geometry.sourcePoint);
+      }
+      if (!style.endFixed) {
+        MXCell target = id_map[target_id];
+        double angle =
+          boost::math::double_constants::pi * ((int)style.endDir.get() - 1) / 2;
+        double facing_angle =
+          boost::math::double_constants::pi * ((int)target.style.direction - 1) / 2;
+        angle -= facing_angle;
+        angle -= target.style.rotation * boost::math::double_constants::pi / 180;
+        double m = std::tan(angle);
+        double outX, outY;
+        if (std::abs(m) > 1) {
+          outY = style.endDir == NORTH ? 0 : 1;
+          outX = 0.5 + (style.endDir == NORTH ? -0.5 : 0.5) / m;
+        } else {
+          outX = style.endDir == WEST ? 0 : 1;
+          outY = 0.5 + m * (style.endDir == WEST ? -0.5 : 0.5);
+        }
+        setEndpointInShape(outX, outY, target, geometry.targetPoint);
+      }
     }
   }
 
-  void MXCell::adjustEndpoint(double* outX, double* outY, MXCell shape)
+  void MXCell::setEndpointInShape(double outX, double outY, const MXCell& shape,
+                                  MXPoint& point, double dx, double dy)
   {
-    double x = *outX; double y = *outY;
-    bool on_edge = x == 0 || x == 1 || y == 0 || y == 1;
-    if (on_edge) {
-      if (shape.style.perimeter == TRIANGLE_P) {
-        // update exitX, exitY to connect with diagonal edges of triangle
-        if (y < 0.5 && x > 0) {
-          double m = (x - 0.5) / (y - 0.5);
-          *outY = (0.5 - m/2) / (2 - m);
-          *outX = 2 * *outY;
-        } else if (y > 0.5 && x > 0) {
-          double m = (x - 0.5) / (y - 0.5);
-          *outY = (1.5 + m/2) / (2 + m);
-          *outX = 2 - 2 * *outY;
+    bool perimeter = outX == 0 || outX == 1 || outY == 0 || outY == 1;
+    switch (shape.style.direction) {
+    case EAST:
+    case WEST:
+      outX += dx / shape.geometry.width; outY += dy / shape.geometry.height;
+      break;
+    case NORTH:
+    case SOUTH:
+      outX += dx / shape.geometry.height; outY += dy / shape.geometry.width;
+      break;
+    }
+    if (perimeter) adjustEndpoint(outX, outY, shape);
+    double x, y;
+    switch (shape.style.direction) {
+    case EAST:
+      x = (shape.geometry.x
+           + (outX * shape.geometry.width));
+      y = (shape.geometry.y
+           + (outY * shape.geometry.height));
+      break;
+    case WEST:
+      x = (shape.geometry.x
+           + ((1 - outX) * shape.geometry.width));
+      y = (shape.geometry.y
+           + ((1 - outY) * shape.geometry.height));
+      break;
+    case NORTH:
+      x = (shape.geometry.x
+           + (outY * shape.geometry.width));
+      y = (shape.geometry.y
+           + ((1 - outX) * shape.geometry.height));
+      break;
+    case SOUTH:
+      x = (shape.geometry.x
+           + ((1 - outY) * shape.geometry.width));
+      y = (shape.geometry.y
+           + (outX * shape.geometry.height));
+      break;
+    }
+    double cx = shape.geometry.x + shape.geometry.width / 2;
+    double cy = shape.geometry.y + shape.geometry.height / 2;
+    double angle = -shape.style.rotation * boost::math::double_constants::pi / 180;
+    librevenge::RVNGPropertyList p = getPoint(x, y, cx, cy, angle);
+    point.x = p["svg:x"]->getDouble();
+    point.y = p["svg:y"]->getDouble();
+  }
+
+  void MXCell::adjustEndpoint(double& outX, double& outY, const MXCell& shape)
+  {
+    double x = outX; double y = outY;
+    if (0 < x && x < 1 && 0 < y && y < 1) {
+      outX = 0.5; outY = 0.5;
+    } else if (shape.style.perimeter == TRIANGLE_P) {
+      // update exitX, exitY to connect with diagonal edges of triangle
+      if (y < 0.5 && x > 0) {
+        double m = (x - 0.5) / (y - 0.5);
+        outY = (0.5 - m/2) / (2 - m);
+        outX = 2 * outY;
+      } else if (y > 0.5 && x > 0) {
+        double m = (x - 0.5) / (y - 0.5);
+        outY = (1.5 + m/2) / (2 + m);
+        outX = 2 - 2 * outY;
+      }
+    } else if (shape.style.perimeter == ELLIPSE_P) {
+      if (x != 0.5) {
+        double m = (y - 0.5) / (x - 0.5);
+        double t = atan(m) + (x < 0.5 ? boost::math::double_constants::pi : 0);
+        outX = 0.5 + 0.5*cos(t);
+        outY = 0.5 + 0.5*sin(t);
+      }
+    } else if (shape.style.perimeter == RHOMBUS_P) {
+      if (x < 0.5 && y < 0.5) {
+        double m = (y - 0.5) / (x - 0.5);
+        outX = m / (2 + 2*m);
+        outY = -outX + 0.5;
+      } else if (x < 0.5 && y > 0.5) {
+        double m = (y - 0.5) / (x - 0.5);
+        outX = m / (2*m - 2);
+        outY = outX + 0.5;
+      } else if (x > 0.5 && y < 0.5) {
+        double m = (y - 0.5) / (x - 0.5);
+        outX = (m - 2) / (2*m - 2);
+        outY = outX - 0.5;
+      } else if (x > 0.5 && y > 0.5) {
+        double m = (y - 0.5) / (x - 0.5);
+        outX = (m + 2) / (2*m + 2);
+        outY = -outX + 1.5;
+      }
+    } else if (shape.style.perimeter == PARALLELOGRAM_P) {
+      double c =
+        (shape.style.parallelogramSize
+         / (shape.style.direction == NORTH || shape.style.direction == SOUTH
+            ? shape.geometry.height : shape.geometry.width));
+      c = std::min(c, 0.5);
+      if (c != 0 && x != 0.5) {
+        double m = (y - 0.5) / (x - 0.5);
+        if (x < c && y < 1) {
+          outX = (m*c + c) / (2*m*c + 2);
+          outY = 1 - outX/c;
+        } else if (x > 1 - c && y > 0) {
+          outX = (m*c - c + 2) / (2*m*c + 2);
+          outY = (1 - outX) / c;
         }
-      } else if (shape.style.perimeter == ELLIPSE_P) {
-        if (x != 0.5) {
-          double m = (y - 0.5) / (x - 0.5);
-          double t = atan(m) + (x < 0.5 ? boost::math::double_constants::pi : 0);
-          *outX = 0.5 + 0.5*cos(t);
-          *outY = 0.5 + 0.5*sin(t);
+      }
+    } else if (shape.style.perimeter == HEXAGON_P) {
+      double c =
+        (shape.style.hexagonSize
+         / (shape.style.direction == NORTH || shape.style.direction == SOUTH
+            ? shape.geometry.height : shape.geometry.width));
+      c = std::min(c, 0.5);
+      if (c != 0 && x != 0.5) {
+        double m = (y - 0.5) / (x - 0.5);
+        if (x < c && y < 0.5) {
+          outX = c * m / (2*c*m + 1);
+          outY = -outX/(2*c) + 0.5;
+        } else if (x > 1 - c && y < 0.5) {
+          outX = (m*c - 1) / (2*m*c - 1);
+          outY = (outX + c - 1) / (2*c);
+        } else if (x < c && y > 0.5) {
+          outX = m*c / (2*m*c - 1);
+          outY = outX/(2*c) + 0.5;
+        } else if (x > 1 - c && y > 0.5) {
+          outX = (m*c + 1) / (2*m*c + 1);
+          outY = (1 + c - outX) / (2*c);
         }
-      } else if (shape.style.perimeter == RHOMBUS_P) {
-        if (x < 0.5 && y < 0.5) {
-          double m = (y - 0.5) / (x - 0.5);
-          *outX = m / (2 + 2*m);
-          *outY = -*outX + 0.5;
-        } else if (x < 0.5 && y > 0.5) {
-          double m = (y - 0.5) / (x - 0.5);
-          *outX = m / (2*m - 2);
-          *outY = *outX + 0.5;
-        } else if (x > 0.5 && y < 0.5) {
-          double m = (y - 0.5) / (x - 0.5);
-          *outX = (m - 2) / (2*m - 2);
-          *outY = *outX - 0.5;
-        } else if (x > 0.5 && y > 0.5) {
-          double m = (y - 0.5) / (x - 0.5);
-          *outX = (m + 2) / (2*m + 2);
-          *outY = -*outX + 1.5;
+      }
+    } else if (shape.style.perimeter == STEP_P) {
+      double c =
+        (shape.style.stepSize
+         / (shape.style.direction == NORTH || shape.style.direction == SOUTH
+            ? shape.geometry.height : shape.geometry.width));
+      if (x == 0 && c > 0.5 && 0 < y && y < 1) {
+        outX = 0.5; outY = 0.5;
+      } else if (y == 0.5) {
+        outX = x == 0 ? c : 1;
+      } else {
+        double m = (x - 0.5) / (y - 0.5);
+        if (x == 0 && y < 0.5) {
+          outY = (1 - m) / (4*c - 2*m);
+          outX = 2*c*outY;
+        } else if (x == 0 && y > 0.5) {
+          outY = (4*c - 1 + m) / (4*c + 2*m);
+          outX = 2*c - 2*c*outY;
+        } else if (x > 1 - c && y < 0.5) {
+          outY = (1 - 2*c + m) / (2*m - 4*c);
+          outX = 2*c*outY + 1 - c;
+        } else if (x > 1 - c && y > 0.5) {
+          outY = (1 + 2*c + m) / (4*c + 2*m);
+          outX = 1 + c - 2*c*outY;
         }
-      } else if (shape.style.perimeter == PARALLELOGRAM_P) {
-        double c =
-          (shape.style.parallelogramSize
-           / (shape.style.direction == NORTH || shape.style.direction == SOUTH
-              ? shape.geometry.height : shape.geometry.width));
-        c = std::min(c, 0.5);
-        if (c != 0 && x != 0.5) {
-          double m = (y - 0.5) / (x - 0.5);
-          if (x < c && y < 1) {
-            *outX = (m*c + c) / (2*m*c + 2);
-            *outY = 1 - *outX/c;
-          } else if (x > 1 - c && y > 0) {
-            *outX = (m*c - c + 2) / (2*m*c + 2);
-            *outY = (1 - *outX) / c;
-          }
-        }
-      } else if (shape.style.perimeter == HEXAGON_P) {
-        double c =
-          (shape.style.hexagonSize
-           / (shape.style.direction == NORTH || shape.style.direction == SOUTH
-              ? shape.geometry.height : shape.geometry.width));
-        c = std::min(c, 0.5);
-        if (c != 0 && x != 0.5) {
-          double m = (y - 0.5) / (x - 0.5);
-          if (x < c && y < 0.5) {
-            *outX = c * m / (2*c*m + 1);
-            *outY = -*outX/(2*c) + 0.5;
-          } else if (x > 1 - c && y < 0.5) {
-            *outX = (m*c - 1) / (2*m*c - 1);
-            *outY = (*outX + c - 1) / (2*c);
-          } else if (x < c && y > 0.5) {
-            *outX = m*c / (2*m*c - 1);
-            *outY = *outX/(2*c) + 0.5;
-          } else if (x > 1 - c && y > 0.5) {
-            *outX = (m*c + 1) / (2*m*c + 1);
-            *outY = (1 + c - *outX) / (2*c);
-          }
-        }
-      } else if (shape.style.perimeter == STEP_P) {
-        double c =
-          (shape.style.stepSize
-           / (shape.style.direction == NORTH || shape.style.direction == SOUTH
-              ? shape.geometry.height : shape.geometry.width));
-        if (x == 0 && c > 0.5 && 0 < y && y < 1) {
-          *outX = 0.5; *outY = 0.5;
-        } else if (y == 0.5) {
-          *outX = x == 0 ? c : 1;
-        } else {
-          double m = (x - 0.5) / (y - 0.5);
-          if (x == 0 && y < 0.5) {
-            *outY = (1 - m) / (4*c - 2*m);
-            *outX = 2*c**outY;
-          } else if (x == 0 && y > 0.5) {
-            *outY = (4*c - 1 + m) / (4*c + 2*m);
-            *outX = 2*c - 2*c**outY;
-          } else if (x > 1 - c && y < 0.5) {
-            *outY = (1 - 2*c + m) / (2*m - 4*c);
-            *outX = 2*c**outY + 1 - c;
-          } else if (x > 1 - c && y > 0.5) {
-            *outY = (1 + 2*c + m) / (4*c + 2*m);
-            *outX = 1 + c - 2*c**outY;
-          }
-        }
-      } else if (shape.style.perimeter == TRAPEZOID_P) {
-        double c =
-          (shape.style.trapezoidSize
-           / (shape.style.direction == NORTH || shape.style.direction == SOUTH
-              ? shape.geometry.height : shape.geometry.width));
-        c = std::min(c, 0.5);
-        if (c != 0 && x != 0.5) {
-          double m = (y - 0.5) / (x - 0.5);
-          if (x < c && y < 1) {
-            *outX = (c + m*c) / (2*m*c + 2);
-            *outY = 1 - *outX/c;
-          } else if (x > 1 - c && y < 1) {
-            *outX = (c + m*c - 2) / (2*m*c - 2);
-            *outY = (*outX + c - 1) / c;
-          }
+      }
+    } else if (shape.style.perimeter == TRAPEZOID_P) {
+      double c =
+        (shape.style.trapezoidSize
+         / (shape.style.direction == NORTH || shape.style.direction == SOUTH
+            ? shape.geometry.height : shape.geometry.width));
+      c = std::min(c, 0.5);
+      if (c != 0 && x != 0.5) {
+        double m = (y - 0.5) / (x - 0.5);
+        if (x < c && y < 1) {
+          outX = (c + m*c) / (2*m*c + 2);
+          outY = 1 - outX/c;
+        } else if (x > 1 - c && y < 1) {
+          outX = (c + m*c - 2) / (2*m*c - 2);
+          outY = (outX + c - 1) / c;
         }
       }
     }
