@@ -6,12 +6,14 @@
 #include "libdrawio_xml.h"
 #include "librevenge/RVNGPropertyList.h"
 #include "librevenge/RVNGPropertyListVector.h"
+#include "librevenge/RVNGString.h"
 #include <boost/algorithm/string.hpp>
 #include <algorithm>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/none.hpp>
 #include <cmath>
+#include <complex>
 #include <initializer_list>
 #include <map>
 #include <ostream>
@@ -39,6 +41,7 @@ namespace libdrawio {
     painter->setStyle(styleProps);
     if (edge) {
       setEndPoints(id_map);
+      setWaypoints(id_map);
       calculateBounds();
       if (!source_id.empty()) {
         propList.insert("draw:start-shape", source_id);
@@ -1783,7 +1786,7 @@ namespace libdrawio {
         endX = target.geometry.x; endY = target.geometry.y;
         endWidth = target.geometry.width; endHeight = target.geometry.height;
       } else {
-        endX = geometry.sourcePoint.x; endY = geometry.sourcePoint.y;
+        endX = geometry.targetPoint.x; endY = geometry.targetPoint.y;
         endWidth = 0; endHeight = 0;
       }
       style.startDir = (endX + endWidth < startX   ? WEST  :
@@ -2006,6 +2009,69 @@ namespace libdrawio {
         } else if (x > 1 - c && y < 1) {
           outX = (c + m*c - 2) / (2*m*c - 2);
           outY = (outX + c - 1) / c;
+        }
+      }
+    }
+  }
+
+  void MXCell::setWaypoints(std::map<librevenge::RVNGString, MXCell> id_map)
+  {
+    if (!edge) return;
+    if (style.edgeStyle == ORTHOGONAL && geometry.points.empty()) {
+      int dir_diff = (int)style.startDir.get() - (int)style.endDir.get();
+      if (std::abs(dir_diff) == 1 || std::abs(dir_diff) == 3) {
+        geometry.points.push_back(
+          MXPoint(geometry.targetPoint.x, geometry.sourcePoint.y)
+        );
+      } else if (std::abs(dir_diff) == 2) {
+        double sourceX, sourceY, sourceWidth, sourceHeight;
+        double targetX, targetY, targetWidth, targetHeight;
+        if (!source_id.empty()) {
+          MXCell source = id_map[source_id];
+          sourceX = source.geometry.x; sourceY = source.geometry.y;
+          sourceWidth = source.geometry.width; sourceHeight = source.geometry.height;
+        } else {
+          sourceX = geometry.sourcePoint.x; sourceY = geometry.sourcePoint.y;
+          sourceWidth = 0; sourceHeight = 0;
+        }
+        if (!target_id.empty()) {
+          MXCell target = id_map[target_id];
+          targetX = target.geometry.x; targetY = target.geometry.y;
+          targetWidth = target.geometry.width; targetHeight = target.geometry.height;
+        } else {
+          targetX = geometry.targetPoint.x; targetY = geometry.targetPoint.y;
+          targetWidth = 0; targetHeight = 0;
+        }
+        double mid_x, mid_y;
+        switch (style.startDir.get()) {
+        case NORTH:
+          mid_y = (sourceY + targetY + targetHeight) / 2;
+          geometry.points.insert(geometry.points.end(), {
+            MXPoint(geometry.sourcePoint.x, mid_y),
+            MXPoint(geometry.targetPoint.x, mid_y)
+          });
+          break;
+        case EAST:
+          mid_x = (sourceX + targetX + sourceWidth) / 2;
+          geometry.points.insert(geometry.points.end(), {
+            MXPoint(mid_x, geometry.sourcePoint.y),
+            MXPoint(mid_x, geometry.targetPoint.y)
+          });
+          break;
+        case SOUTH:
+          mid_y = (sourceY + targetY + sourceHeight) / 2;
+          geometry.points.insert(geometry.points.end(), {
+            MXPoint(geometry.sourcePoint.x, mid_y),
+            MXPoint(geometry.targetPoint.x, mid_y)
+          });
+          break;
+        case WEST:
+          mid_x = (sourceX + targetX + targetWidth) / 2;
+          geometry.points.insert(geometry.points.end(), {
+            MXPoint(mid_x, geometry.sourcePoint.y),
+            MXPoint(mid_x, geometry.targetPoint.y)
+          });
+          break;
         }
       }
     }

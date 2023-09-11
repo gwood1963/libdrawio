@@ -10,6 +10,7 @@
 #include "librevenge/RVNGPropertyList.h"
 #include "librevenge/RVNGString.h"
 #include "librevenge/librevenge.h"
+#include <map>
 #include <string>
 #include <vector>
 
@@ -53,6 +54,7 @@ namespace libdrawio {
     void adjustEndpoint(double& outX, double& outY, const MXCell& shape);
     void setEndpointInShape(double x, double y, const MXCell& shape, MXPoint& point,
                             double dx = 0, double dy = 0);
+    void setWaypoints(std::map<librevenge::RVNGString, MXCell> id_map);
     static int draw_count;
   };
 }
