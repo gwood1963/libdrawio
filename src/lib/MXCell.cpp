@@ -14,6 +14,7 @@
 #include <boost/none.hpp>
 #include <cmath>
 #include <complex>
+#include <cstdlib>
 #include <initializer_list>
 #include <map>
 #include <ostream>
@@ -21,6 +22,7 @@
 #include <sstream>
 #include <set>
 #include <vector>
+#include <deque>
 #include <iostream>
 #include <librevenge/librevenge.h>
 
@@ -1482,7 +1484,7 @@ namespace libdrawio {
       i.insert("svg:y", geometry.sourcePoint.y / 100.);
       out.append(i); i.clear();
       for (unsigned int j = 0; j < geometry.points.size(); j++) {
-        MXPoint p = geometry.points[j];
+        MXPoint p = geometry.points.at(j);
         i.insert("librevenge:path-action", "L");
         i.insert("svg:x", p.x / 100.);
         i.insert("svg:y", p.y / 100.);
@@ -1499,7 +1501,7 @@ namespace libdrawio {
       i.insert("svg:y", geometry.sourcePoint.y / 100.);
       out.append(i); i.clear();
       for (unsigned int j = 0; j < geometry.points.size(); j++) {
-        MXPoint p = geometry.points[j];
+        MXPoint p = geometry.points.at(j);
         i.insert("librevenge:path-action", "L");
         i.insert("svg:x", p.x / 100.);
         i.insert("svg:y", p.y / 100.);
@@ -1800,6 +1802,66 @@ namespace libdrawio {
                       endX != startX              ? style.startDir :
                       style.startDir == NORTH     ? SOUTH :
                                                     NORTH);
+      if (style.startFixed) {
+        startX = geometry.sourcePoint.x; startY = geometry.sourcePoint.y;
+        startWidth = 0; startHeight = 0;
+      }
+      if (style.endFixed) {
+        endX = geometry.targetPoint.x; endY = geometry.targetPoint.y;
+        endWidth = 0; endHeight = 0;
+      }
+      if (!geometry.points.empty()) {
+        int size = geometry.points.size();
+        MXPoint p = geometry.points.front();
+        MXPoint q = geometry.points.back();
+        bool new_start =
+          (p.x < startX || p.x > startX + startWidth)
+          && (p.y < startY || p.y > startY + startHeight);
+        bool new_end =
+          (q.x < endX || q.x > endX + endWidth)
+          && (q.y < endY || q.y > endY + endHeight);
+        if (!new_start) {
+          style.startDir = (p.x < startX ? WEST :
+                            p.y < startY ? NORTH :
+                            p.x > startX + startWidth ? EAST : SOUTH);
+        }
+        if (!new_end) {
+          style.endDir = (q.x < endX ? WEST :
+                          q.y < endY ? NORTH :
+                          q.x > endX + endWidth ? EAST : SOUTH);
+        }
+        if (new_start) {
+          if ((!new_end
+               && ((style.endDir == WEST || style.endDir == EAST)
+                   == size % 2))) {
+            style.startDir = (p.x < startX ? WEST : EAST);
+            geometry.points.push_front(MXPoint(p.x, startY + startHeight / 2));
+          } else {
+            style.startDir = (p.y < startY ? NORTH : SOUTH);
+            geometry.points.push_front(MXPoint(startX + startWidth / 2, p.y));
+          }
+          if (new_end) {
+            if (size % 2 == 0) {
+              style.endDir = (q.y < endY ? NORTH : SOUTH);
+              geometry.points.push_back(MXPoint(endX + endWidth / 2, q.y));
+            } else {
+              style.endDir = (q.x < endX ? WEST : EAST);
+              geometry.points.push_back(MXPoint(q.x, endY + endHeight / 2));
+            }
+          }
+        } else {
+          if (new_end || size == 1) {
+            if (size % 2
+                == (style.startDir == EAST || style.startDir == WEST)) {
+              style.endDir = (q.x < endX ? WEST : EAST);
+              geometry.points.push_back(MXPoint(q.x, endY + endHeight / 2));
+            } else {
+              style.endDir = (q.y < endY ? NORTH : SOUTH);
+              geometry.points.push_back(MXPoint(endX + endWidth / 2, q.y));
+            }
+          }
+        }
+      }
       if (!style.startFixed) {
         MXCell source = id_map[source_id];
         double angle =
@@ -1818,6 +1880,14 @@ namespace libdrawio {
           outY = 0.5 + m * (style.startDir == WEST ? -0.5 : 0.5);
         }
         setEndpointInShape(outX, outY, source, geometry.sourcePoint);
+        if (source.style.rotation == 0 && !geometry.points.empty()) {
+          MXPoint p = geometry.points.front();
+          if (style.startDir == NORTH || style.startDir == SOUTH) {
+            geometry.sourcePoint.x = p.x;
+          } else {
+            geometry.sourcePoint.y = p.y;
+          }
+        }
       }
       if (!style.endFixed) {
         MXCell target = id_map[target_id];
@@ -1837,6 +1907,14 @@ namespace libdrawio {
           outY = 0.5 + m * (style.endDir == WEST ? -0.5 : 0.5);
         }
         setEndpointInShape(outX, outY, target, geometry.targetPoint);
+        if (target.style.rotation == 0 && !geometry.points.empty()) {
+          MXPoint p = geometry.points.back();
+          if (style.endDir == NORTH || style.endDir == SOUTH) {
+            geometry.targetPoint.x = p.x;
+          } else {
+            geometry.targetPoint.y = p.y;
+          }
+        }
       }
     }
   }

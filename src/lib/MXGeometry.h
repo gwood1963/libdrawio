@@ -3,7 +3,7 @@
 #ifndef MXGEOMETRY_H
 #define MXGEOMETRY_H
 
-#include <vector>
+#include <deque>
 
 namespace libdrawio {
   struct MXPoint {
@@ -17,7 +17,7 @@ namespace libdrawio {
   struct MXGeometry {
     double x, y, width, height;
     MXPoint sourcePoint, targetPoint;
-    std::vector<MXPoint> points;
+    std::deque<MXPoint> points;
     double offset;
     bool relative;
     MXGeometry()
