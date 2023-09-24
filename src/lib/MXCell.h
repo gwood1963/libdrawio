@@ -55,6 +55,7 @@ namespace libdrawio {
     void setEndpointInShape(double x, double y, const MXCell& shape, MXPoint& point,
                             double dx = 0, double dy = 0);
     void setWaypoints(std::map<librevenge::RVNGString, MXCell> id_map);
+    bool pointsTo(MXPoint p, MXPoint q, Direction dir);
     static int draw_count;
   };
 }

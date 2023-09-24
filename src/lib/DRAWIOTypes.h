@@ -18,6 +18,11 @@ namespace libdrawio {
     WEST
   };
 
+  inline Direction opposite(Direction dir)
+  {
+    return (Direction)(((int)dir + 2) % 4);
+  }
+
   enum AlignH {
     LEFT,
     CENTER,

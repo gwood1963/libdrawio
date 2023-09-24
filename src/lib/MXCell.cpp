@@ -1888,6 +1888,27 @@ namespace libdrawio {
             geometry.sourcePoint.y = p.y;
           }
         }
+      } else if (!source_id.empty()) {
+        MXCell source = id_map[source_id];
+        if (std::fmod(source.style.rotation, 90) == 0) {
+          double rx = source.geometry.width / 2;
+          double ry = source.geometry.height / 2;
+          double cx = source.geometry.x + rx;
+          double cy = source.geometry.y + ry;
+          MXPoint p = geometry.sourcePoint;
+          if (std::fmod(std::floor(source.style.rotation / 90), 2) == 1) {
+            double t = rx; rx = ry; ry = t;
+          }
+          if (p.y == cy + ry) {
+            style.startDir = SOUTH;
+          } else if (p.y == cy - ry) {
+            style.startDir = NORTH;
+          } else if (p.x == cx - rx) {
+            style.startDir = WEST;
+          } else if (p.x == cx + rx) {
+            style.startDir = EAST;
+          }
+        }
       }
       if (!style.endFixed) {
         MXCell target = id_map[target_id];
@@ -1913,6 +1934,27 @@ namespace libdrawio {
             geometry.targetPoint.x = p.x;
           } else {
             geometry.targetPoint.y = p.y;
+          }
+        }
+      } else if (!target_id.empty()) {
+        MXCell target = id_map[target_id];
+        if (std::fmod(target.style.rotation, 90) == 0) {
+          double rx = target.geometry.width / 2;
+          double ry = target.geometry.height / 2;
+          double cx = target.geometry.x + rx;
+          double cy = target.geometry.y + ry;
+          MXPoint p = geometry.targetPoint;
+          if (std::fmod(std::floor(target.style.rotation / 90), 2) == 1) {
+            double t = rx; rx = ry; ry = t;
+          }
+          if (p.y == cy + ry) {
+            style.endDir = SOUTH;
+          } else if (p.y == cy - ry) {
+            style.endDir = NORTH;
+          } else if (p.x == cx - rx) {
+            style.endDir = WEST;
+          } else if (p.x == cx + rx) {
+            style.endDir = EAST;
           }
         }
       }
@@ -2096,62 +2138,256 @@ namespace libdrawio {
   {
     if (!edge) return;
     if (style.edgeStyle == ORTHOGONAL && geometry.points.empty()) {
-      int dir_diff = (int)style.startDir.get() - (int)style.endDir.get();
-      if (std::abs(dir_diff) == 1 || std::abs(dir_diff) == 3) {
-        geometry.points.push_back(
-          MXPoint(geometry.targetPoint.x, geometry.sourcePoint.y)
-        );
-      } else if (std::abs(dir_diff) == 2) {
-        double sourceX, sourceY, sourceWidth, sourceHeight;
-        double targetX, targetY, targetWidth, targetHeight;
-        if (!source_id.empty()) {
-          MXCell source = id_map[source_id];
-          sourceX = source.geometry.x; sourceY = source.geometry.y;
-          sourceWidth = source.geometry.width; sourceHeight = source.geometry.height;
-        } else {
-          sourceX = geometry.sourcePoint.x; sourceY = geometry.sourcePoint.y;
-          sourceWidth = 0; sourceHeight = 0;
-        }
-        if (!target_id.empty()) {
-          MXCell target = id_map[target_id];
-          targetX = target.geometry.x; targetY = target.geometry.y;
-          targetWidth = target.geometry.width; targetHeight = target.geometry.height;
-        } else {
-          targetX = geometry.targetPoint.x; targetY = geometry.targetPoint.y;
-          targetWidth = 0; targetHeight = 0;
-        }
-        double mid_x, mid_y;
-        switch (style.startDir.get()) {
-        case NORTH:
-          mid_y = (sourceY + targetY + targetHeight) / 2;
-          geometry.points.insert(geometry.points.end(), {
-            MXPoint(geometry.sourcePoint.x, mid_y),
-            MXPoint(geometry.targetPoint.x, mid_y)
-          });
-          break;
-        case EAST:
-          mid_x = (sourceX + targetX + sourceWidth) / 2;
-          geometry.points.insert(geometry.points.end(), {
-            MXPoint(mid_x, geometry.sourcePoint.y),
-            MXPoint(mid_x, geometry.targetPoint.y)
-          });
-          break;
-        case SOUTH:
-          mid_y = (sourceY + targetY + sourceHeight) / 2;
-          geometry.points.insert(geometry.points.end(), {
-            MXPoint(geometry.sourcePoint.x, mid_y),
-            MXPoint(geometry.targetPoint.x, mid_y)
-          });
-          break;
-        case WEST:
-          mid_x = (sourceX + targetX + targetWidth) / 2;
-          geometry.points.insert(geometry.points.end(), {
-            MXPoint(mid_x, geometry.sourcePoint.y),
-            MXPoint(mid_x, geometry.targetPoint.y)
-          });
-          break;
-        }
+      double sourceX, sourceY, sourceWidth, sourceHeight;
+      double targetX, targetY, targetWidth, targetHeight;
+      if (!source_id.empty()) {
+        MXCell source = id_map[source_id];
+        sourceX = source.geometry.x; sourceY = source.geometry.y;
+        sourceWidth = source.geometry.width; sourceHeight = source.geometry.height;
+      } else {
+        sourceX = geometry.sourcePoint.x; sourceY = geometry.sourcePoint.y;
+        sourceWidth = 0; sourceHeight = 0;
       }
+      if (!target_id.empty()) {
+        MXCell target = id_map[target_id];
+        targetX = target.geometry.x; targetY = target.geometry.y;
+        targetWidth = target.geometry.width; targetHeight = target.geometry.height;
+      } else {
+        targetX = geometry.targetPoint.x; targetY = geometry.targetPoint.y;
+        targetWidth = 0; targetHeight = 0;
+      }
+      MXPoint p = geometry.sourcePoint;
+      Direction p_dir = style.startDir.get();
+      if (p_dir == NORTH) {
+        p.y -= 20;
+      } else if (p_dir == EAST) {
+        p.x += 20;
+      } else if (p_dir == SOUTH) {
+        p.y += 20;
+      } else if (p_dir == WEST) {
+        p.x -= 20;
+      }
+      MXPoint q = geometry.targetPoint;
+      Direction q_dir = style.endDir.get();
+      bool start = true;
+      bool hugSource = true;
+      while (p_dir != opposite(q_dir) || !pointsTo(p, q, p_dir)
+             || (p.x != q.x && (p_dir == NORTH || p_dir == SOUTH))
+             || (p.y != q.y && (p_dir == EAST || p_dir == WEST))) {
+        double& change = (p_dir == NORTH || p_dir == SOUTH ? p.y : p.x);
+        double x = hugSource ? sourceX : targetX;
+        double y = hugSource ? sourceY : targetY;
+        double width = hugSource ? sourceWidth : targetWidth;
+        double height = hugSource ? sourceHeight : targetHeight;
+        bool overlap =
+            (p_dir == NORTH || p_dir == SOUTH ?
+             ((targetY < sourceY && sourceY < targetY + targetHeight)
+              || (sourceY < targetY && targetY < sourceY + sourceHeight)) :
+             ((targetX < sourceX && sourceX < targetX + targetWidth)
+              || (sourceX < targetX && targetX < sourceX + sourceWidth)));
+        if (std::abs((int)p_dir - (int)q_dir) % 2 == 1
+            && pointsTo(p, q, p_dir) && pointsTo(q, p, q_dir)) {
+          bool obstruction_s =
+            (p_dir == EAST || p_dir == WEST
+             ? ((sourceX - 20 < q.x && q.x < sourceX + sourceWidth + 20
+                 && ((p.y < sourceY && sourceY + sourceHeight/2 < targetY + targetHeight/2)
+                     || (p.y > sourceY + sourceHeight
+                         && sourceY + sourceHeight/2 > targetY + targetHeight/2)))
+                || (sourceY - 20 < p.y && p.y < sourceY + sourceHeight + 20
+                    && ((q.x < sourceX && sourceX + sourceWidth/2 < targetX + targetWidth/2)
+                        || (q.x > sourceX + sourceWidth
+                            && sourceX + sourceWidth/2 > targetX + targetWidth/2))))
+             : ((sourceY - 20 < q.y && q.y < sourceY + sourceHeight + 20
+                 && ((p.x < sourceX && sourceX + sourceWidth/2 < targetX + targetWidth/2)
+                     || (p.x > sourceX + sourceWidth
+                         && sourceX + sourceWidth/2 > targetX + targetWidth/2)))
+                || (sourceX - 20 < p.x && p.x < sourceX + sourceWidth + 20
+                    && ((q.y < sourceY
+                         && sourceY + sourceHeight/2 < targetY + targetHeight/2)
+                        || (q.y > sourceY + sourceHeight
+                            && sourceY + sourceHeight/2 > targetY + targetHeight/2)))));
+          bool obstruction_t =
+            (p_dir == EAST || p_dir == WEST
+             ? targetY - 20 < p.y && p.y < targetY + targetHeight + 20
+             : targetX - 20 < p.x && p.x < targetX + targetWidth + 20);
+          if (obstruction_s) {
+            change = (p_dir == NORTH ? y - 20 :
+                      p_dir == EAST ? x + width + 20 :
+                      p_dir == SOUTH ? y + height + 20 : x - 20);
+            if (p_dir == NORTH || p_dir == SOUTH) {
+              p_dir = (q.x < p.x ? WEST : EAST);
+            } else {
+              p_dir = (q.y < p.y ? NORTH : SOUTH);
+            }
+          } else if (obstruction_t) {
+            change = (p_dir == NORTH ? (sourceY + targetY + targetHeight) / 2 :
+                      p_dir == EAST ? (sourceX + targetX + sourceWidth) / 2 :
+                      p_dir == SOUTH ? (sourceY + targetY + sourceHeight) / 2 :
+                      (sourceX + targetX + targetWidth) / 2);
+            if (p_dir == NORTH || p_dir == SOUTH) {
+              p_dir = (sourceX < p.x ? WEST : EAST);
+            } else {
+              p_dir = (sourceY < p.y ? NORTH : SOUTH);
+            }
+            hugSource = false;
+          } else {
+            change = (q_dir == NORTH || q_dir == SOUTH ? q.x : q.y);
+            p_dir = opposite(q_dir);
+          }
+        } else if (p_dir == opposite(q_dir) && pointsTo(p, q, p_dir)) {
+          double dist =
+            (p_dir == NORTH || p_dir == SOUTH ?
+             std::min(std::abs(targetY + targetHeight - sourceY),
+                      std::abs(sourceY + sourceHeight - targetY)) :
+             std::min(std::abs(targetX + targetWidth - sourceX),
+                      std::abs(sourceX + sourceWidth - targetX)));
+          if (dist >= 40) {
+            change = (p_dir == NORTH ? (sourceY + targetY + targetHeight) / 2 :
+                      p_dir == EAST ? (sourceX + targetX + sourceWidth) / 2 :
+                      p_dir == SOUTH ? (sourceY + targetY + sourceHeight) / 2 :
+                      (sourceX + targetX + targetWidth) / 2);
+            if (p_dir == NORTH || p_dir == SOUTH) {
+              p_dir = (q.x < p.x ? WEST : EAST);
+            } else {
+              p_dir = (q.y < p.y ? NORTH : SOUTH);
+            }
+            hugSource = false;
+          } else {
+            change = (p_dir == NORTH ? y - 20 :
+                      p_dir == EAST ? x + width + 20 :
+                      p_dir == SOUTH ? y + height + 20 : x - 20);
+            if (p_dir == NORTH || p_dir == SOUTH) {
+              p_dir = (q.x < p.x ? WEST : EAST);
+            } else {
+              p_dir = (q.y < p.y ? NORTH : SOUTH);
+            }
+          }
+        } else if (std::abs((int)p_dir - (int)q_dir) % 2 == 1) {
+          double dist =
+            (p_dir == NORTH || p_dir == SOUTH ?
+             std::min(std::abs(targetY + targetHeight - sourceY),
+                      std::abs(sourceY + sourceHeight - targetY)) :
+             std::min(std::abs(targetX + targetWidth - sourceX),
+                      std::abs(sourceX + sourceWidth - targetX)));
+          if (pointsTo(p, q, p_dir) && dist >= 40 && !overlap) {
+            change = (p_dir == NORTH ? (sourceY + targetY + targetHeight) / 2 :
+                      p_dir == EAST ? (sourceX + targetX + sourceWidth) / 2 :
+                      p_dir == SOUTH ? (sourceY + targetY + sourceHeight) / 2 :
+                      (sourceX + targetX + targetWidth) / 2);
+            if (p_dir == NORTH || p_dir == SOUTH) {
+              p_dir = (q.x < p.x ? WEST : EAST);
+            } else {
+              p_dir = (q.y < p.y ? NORTH : SOUTH);
+            }
+            hugSource = false;
+          } else {
+            change = (p_dir == NORTH ? y - 20 :
+                      p_dir == EAST ? x + width + 20 :
+                      p_dir == SOUTH ? y + height + 20 : x - 20);
+            if (start) {
+              if (p_dir == NORTH || p_dir == SOUTH) {
+                p_dir = (targetX + targetWidth / 2 < sourceX + sourceWidth / 2
+                         ? WEST : EAST);
+              } else {
+                p_dir = (targetY + targetHeight / 2 < sourceY + sourceHeight / 2
+                         ? NORTH : SOUTH);
+              }
+            } else {
+              if (p_dir == NORTH || p_dir == SOUTH) {
+                p_dir = (q.x < p.x ? WEST : EAST);
+              } else {
+                p_dir = (q.y < p.y ? NORTH : SOUTH);
+              }
+            }
+          }
+        } else if (p_dir == opposite(q_dir)) {
+          change = (p_dir == NORTH ? y - 20 :
+                    p_dir == EAST ? x + width + 20 :
+                    p_dir == SOUTH ? y + height + 20 : x - 20);
+          if (start) {
+            if (p_dir == NORTH || p_dir == SOUTH) {
+              p_dir = (targetX + targetWidth / 2 < sourceX + sourceWidth / 2
+                       ? WEST : EAST);
+            } else {
+              p_dir = (targetY + targetHeight / 2 < sourceY + sourceHeight / 2
+                       ? NORTH : SOUTH);
+            }
+          } else {
+            if (p_dir == NORTH || p_dir == SOUTH) {
+              p_dir = (q.x < p.x ? WEST : EAST);
+            } else {
+              p_dir = (q.y < p.y ? NORTH : SOUTH);
+            }
+          }
+        } else if (p_dir == q_dir) {
+          double test = p_dir == NORTH || p_dir == SOUTH ? p.x : p.y;
+          double target = q_dir == NORTH || q_dir == SOUTH ? q.x : q.y;
+          if (test == target) {
+            q_dir = opposite(q_dir);
+            continue;
+          }
+          bool obstruction_s =
+            (p_dir == NORTH || p_dir == SOUTH
+             ? (sourceX - 20 < q.x && q.x < sourceX + sourceWidth + 20
+                && sourceX - 20 < q.x && q.x < sourceX + sourceWidth + 20
+                && ((p.y < sourceY && sourceY + sourceHeight/2 < targetY + targetHeight/2)
+                    || (p.y > sourceY + sourceHeight
+                        && sourceY + sourceHeight/2 > targetY + targetHeight/2)))
+             : (sourceY - 20 < q.y && q.y < sourceY + sourceHeight + 20
+                && sourceY - 20 < p.y && p.y < sourceY + sourceHeight + 20
+                && ((p.x < sourceX && sourceX + sourceWidth/2 < targetX + targetWidth/2)
+                    || (p.x > sourceX + sourceWidth
+                        
+                        && sourceX + sourceWidth/2 > targetX + targetWidth/2))));
+          bool obstruction_t =
+            (p_dir == EAST || p_dir == WEST
+             ? targetY - 20 < p.y && p.y < targetY + targetHeight + 20
+             : targetX - 20 < p.x && p.x < targetX + targetWidth + 20);
+          if (!obstruction_t || obstruction_s) {
+            if (p_dir == NORTH) {
+              change = std::min(change, targetY - 20);
+            } else if (p_dir == EAST) {
+              change = std::max(change, targetX + targetWidth + 20);
+            } else if (p_dir == SOUTH) {
+              change = std::max(change, targetY + targetHeight + 20);
+            } else {
+              change = std::min(change, targetX - 20);
+            }
+            if (p_dir == NORTH || p_dir == SOUTH) {
+              p_dir = (q.x < p.x ? WEST : EAST);
+            } else {
+              p_dir = (q.y < p.y ? NORTH : SOUTH);
+            }
+          } else {
+            change = (p_dir == NORTH ? (sourceY + targetY + targetHeight) / 2 :
+                      p_dir == EAST ? (sourceX + targetX + sourceWidth) / 2 :
+                      p_dir == SOUTH ? (sourceY + targetY + sourceHeight) / 2 :
+                      (sourceX + targetX + targetWidth) / 2);
+            if (p_dir == NORTH || p_dir == SOUTH) {
+              p_dir = (sourceX < p.x ? WEST : EAST);
+            } else {
+              p_dir = (sourceY < p.y ? NORTH : SOUTH);
+            }
+            hugSource = false;
+          }
+        }
+        geometry.points.push_back(p);
+        start = false;
+      }
+    }
+  }
+
+  bool MXCell::pointsTo(MXPoint p, MXPoint q, Direction dir)
+  {
+    switch (dir) {
+    case NORTH:
+      return q.y < p.y;
+    case EAST:
+      return q.x > p.x;
+    case SOUTH:
+      return q.y > p.y;
+    case WEST:
+      return q.x < p.x;
     }
   }
 
