@@ -12,6 +12,10 @@ namespace libdrawio {
     MXPoint(double x, double y) : x(x), y(y) {}
     MXPoint(const MXPoint &mxpoint) = default;
     MXPoint &operator=(const MXPoint &mxpoint) = default;
+    inline bool operator==(const MXPoint other)
+    {
+      return x == other.x && y == other.y;
+    }
   };
 
   struct MXGeometry {

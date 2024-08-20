@@ -1799,7 +1799,7 @@ namespace libdrawio {
                       endY > startY + startHeight ? NORTH :
                       endX + endWidth < startX    ? EAST  :
                       endX > startX + startWidth  ? WEST  :
-                      endX != startX              ? style.startDir :
+                      endX > startX              ? style.startDir :
                       style.startDir == NORTH     ? SOUTH :
                                                     NORTH);
       if (style.startFixed) {
@@ -2158,6 +2158,9 @@ namespace libdrawio {
       }
       MXPoint p = geometry.sourcePoint;
       Direction p_dir = style.startDir.get();
+      MXPoint q = geometry.targetPoint;
+      Direction q_dir = style.endDir.get();
+      if (p == q) return;
       if (p_dir == NORTH) {
         p.y -= 20;
       } else if (p_dir == EAST) {
@@ -2167,54 +2170,66 @@ namespace libdrawio {
       } else if (p_dir == WEST) {
         p.x -= 20;
       }
-      MXPoint q = geometry.targetPoint;
-      Direction q_dir = style.endDir.get();
       bool start = true;
       bool hugSource = true;
       while (p_dir != opposite(q_dir) || !pointsTo(p, q, p_dir)
-             || (p.x != q.x && (p_dir == NORTH || p_dir == SOUTH))
-             || (p.y != q.y && (p_dir == EAST || p_dir == WEST))) {
-        double& change = (p_dir == NORTH || p_dir == SOUTH ? p.y : p.x);
+             || (p.x != q.x && vertical(p_dir))
+             || (p.y != q.y && horizontal(p_dir))) {
+        double& change = (vertical(p_dir) ? p.y : p.x);
         double x = hugSource ? sourceX : targetX;
         double y = hugSource ? sourceY : targetY;
         double width = hugSource ? sourceWidth : targetWidth;
         double height = hugSource ? sourceHeight : targetHeight;
         bool overlap =
-            (p_dir == NORTH || p_dir == SOUTH ?
+            (vertical(p_dir) ?
              ((targetY < sourceY && sourceY < targetY + targetHeight)
               || (sourceY < targetY && targetY < sourceY + sourceHeight)) :
              ((targetX < sourceX && sourceX < targetX + targetWidth)
               || (sourceX < targetX && targetX < sourceX + sourceWidth)));
-        if (std::abs((int)p_dir - (int)q_dir) % 2 == 1
-            && pointsTo(p, q, p_dir) && pointsTo(q, p, q_dir)) {
-          bool obstruction_s =
-            (p_dir == EAST || p_dir == WEST
-             ? ((sourceX - 20 < q.x && q.x < sourceX + sourceWidth + 20
-                 && ((p.y < sourceY && sourceY + sourceHeight/2 < targetY + targetHeight/2)
-                     || (p.y > sourceY + sourceHeight
-                         && sourceY + sourceHeight/2 > targetY + targetHeight/2)))
-                || (sourceY - 20 < p.y && p.y < sourceY + sourceHeight + 20
-                    && ((q.x < sourceX && sourceX + sourceWidth/2 < targetX + targetWidth/2)
-                        || (q.x > sourceX + sourceWidth
-                            && sourceX + sourceWidth/2 > targetX + targetWidth/2))))
-             : ((sourceY - 20 < q.y && q.y < sourceY + sourceHeight + 20
-                 && ((p.x < sourceX && sourceX + sourceWidth/2 < targetX + targetWidth/2)
-                     || (p.x > sourceX + sourceWidth
-                         && sourceX + sourceWidth/2 > targetX + targetWidth/2)))
-                || (sourceX - 20 < p.x && p.x < sourceX + sourceWidth + 20
-                    && ((q.y < sourceY
-                         && sourceY + sourceHeight/2 < targetY + targetHeight/2)
-                        || (q.y > sourceY + sourceHeight
-                            && sourceY + sourceHeight/2 > targetY + targetHeight/2)))));
+        if (perpendicular(p_dir, q_dir) && pointsTo(p, q, p_dir) && pointsTo(q, p, q_dir)) {
+          bool obstruction_s = false;
+          if (horizontal(p_dir)) {
+            if (sourceX - 20 < q.x && q.x < sourceX + sourceWidth + 20) {
+              if (p.y < sourceY) {
+                obstruction_s = sourceY + sourceHeight/2 < targetY + targetHeight/2;
+              } else if (p.y > sourceY + sourceHeight) {
+                obstruction_s = sourceY + sourceHeight/2 > targetY + targetHeight/2;
+              }
+            } else if (sourceY - 20 < p.y && p.y < sourceY + sourceHeight + 20) {
+              if (q.x < sourceX) {
+                obstruction_s = sourceX + sourceWidth/2 < targetX + targetWidth/2;
+              } else if (q.x > sourceX + sourceWidth) {
+                obstruction_s = sourceX + sourceWidth/2 > targetX + targetWidth/2;
+              }
+            }
+          } else {
+            if (sourceX - 20 < p.x && p.x < sourceX + sourceWidth + 20) {
+              if (q.y < sourceY) {
+                obstruction_s = sourceY + sourceHeight/2 < targetY + targetHeight/2;
+              } else if (q.y > sourceY + sourceHeight) {
+                obstruction_s = sourceY + sourceHeight/2 > targetY + targetHeight/2;
+              }
+            } else if (sourceY - 20 < q.y && q.y < sourceY + sourceHeight + 20) {
+              if (p.x < sourceX) {
+                obstruction_s = sourceX + sourceWidth/2 < targetX + targetWidth/2;
+              } else if (p.x > sourceX + sourceWidth) {
+                obstruction_s = sourceX + sourceWidth/2 > targetX + targetWidth/2;
+              }
+            }
+          }
           bool obstruction_t =
-            (p_dir == EAST || p_dir == WEST
+            (horizontal(p_dir)
              ? targetY - 20 < p.y && p.y < targetY + targetHeight + 20
              : targetX - 20 < p.x && p.x < targetX + targetWidth + 20);
+          if (targetX <= p.x && p.x <= targetX + targetHeight
+              && targetY <= p.y && p.y <= targetY + targetHeight) {
+            obstruction_t = false;
+          }
           if (obstruction_s) {
             change = (p_dir == NORTH ? y - 20 :
                       p_dir == EAST ? x + width + 20 :
                       p_dir == SOUTH ? y + height + 20 : x - 20);
-            if (p_dir == NORTH || p_dir == SOUTH) {
+            if (vertical(p_dir)) {
               p_dir = (q.x < p.x ? WEST : EAST);
             } else {
               p_dir = (q.y < p.y ? NORTH : SOUTH);
@@ -2224,19 +2239,19 @@ namespace libdrawio {
                       p_dir == EAST ? (sourceX + targetX + sourceWidth) / 2 :
                       p_dir == SOUTH ? (sourceY + targetY + sourceHeight) / 2 :
                       (sourceX + targetX + targetWidth) / 2);
-            if (p_dir == NORTH || p_dir == SOUTH) {
+            if (vertical(p_dir)) {
               p_dir = (sourceX < p.x ? WEST : EAST);
             } else {
               p_dir = (sourceY < p.y ? NORTH : SOUTH);
             }
             hugSource = false;
           } else {
-            change = (q_dir == NORTH || q_dir == SOUTH ? q.x : q.y);
+            change = (horizontal(p_dir) ? q.x : q.y);
             p_dir = opposite(q_dir);
           }
         } else if (p_dir == opposite(q_dir) && pointsTo(p, q, p_dir)) {
           double dist =
-            (p_dir == NORTH || p_dir == SOUTH ?
+            (vertical(p_dir) ?
              std::min(std::abs(targetY + targetHeight - sourceY),
                       std::abs(sourceY + sourceHeight - targetY)) :
              std::min(std::abs(targetX + targetWidth - sourceX),
@@ -2246,7 +2261,7 @@ namespace libdrawio {
                       p_dir == EAST ? (sourceX + targetX + sourceWidth) / 2 :
                       p_dir == SOUTH ? (sourceY + targetY + sourceHeight) / 2 :
                       (sourceX + targetX + targetWidth) / 2);
-            if (p_dir == NORTH || p_dir == SOUTH) {
+            if (vertical(p_dir)) {
               p_dir = (q.x < p.x ? WEST : EAST);
             } else {
               p_dir = (q.y < p.y ? NORTH : SOUTH);
@@ -2256,15 +2271,20 @@ namespace libdrawio {
             change = (p_dir == NORTH ? y - 20 :
                       p_dir == EAST ? x + width + 20 :
                       p_dir == SOUTH ? y + height + 20 : x - 20);
-            if (p_dir == NORTH || p_dir == SOUTH) {
+            if (vertical(p_dir)) {
               p_dir = (q.x < p.x ? WEST : EAST);
             } else {
               p_dir = (q.y < p.y ? NORTH : SOUTH);
             }
           }
-        } else if (std::abs((int)p_dir - (int)q_dir) % 2 == 1) {
+        } else if (perpendicular(p_dir, q_dir)) {
+          if (targetX <= p.x && p.x <= targetX + targetHeight
+              && targetY <= p.y && p.y <= targetY + targetHeight) {
+            q_dir = opposite(q_dir);
+            continue;
+          }
           double dist =
-            (p_dir == NORTH || p_dir == SOUTH ?
+            (vertical(p_dir) ?
              std::min(std::abs(targetY + targetHeight - sourceY),
                       std::abs(sourceY + sourceHeight - targetY)) :
              std::min(std::abs(targetX + targetWidth - sourceX),
@@ -2274,7 +2294,7 @@ namespace libdrawio {
                       p_dir == EAST ? (sourceX + targetX + sourceWidth) / 2 :
                       p_dir == SOUTH ? (sourceY + targetY + sourceHeight) / 2 :
                       (sourceX + targetX + targetWidth) / 2);
-            if (p_dir == NORTH || p_dir == SOUTH) {
+            if (vertical(p_dir)) {
               p_dir = (q.x < p.x ? WEST : EAST);
             } else {
               p_dir = (q.y < p.y ? NORTH : SOUTH);
@@ -2285,7 +2305,7 @@ namespace libdrawio {
                       p_dir == EAST ? x + width + 20 :
                       p_dir == SOUTH ? y + height + 20 : x - 20);
             if (start) {
-              if (p_dir == NORTH || p_dir == SOUTH) {
+              if (vertical(p_dir)) {
                 p_dir = (targetX + targetWidth / 2 < sourceX + sourceWidth / 2
                          ? WEST : EAST);
               } else {
@@ -2293,7 +2313,7 @@ namespace libdrawio {
                          ? NORTH : SOUTH);
               }
             } else {
-              if (p_dir == NORTH || p_dir == SOUTH) {
+              if (vertical(p_dir)) {
                 p_dir = (q.x < p.x ? WEST : EAST);
               } else {
                 p_dir = (q.y < p.y ? NORTH : SOUTH);
@@ -2305,7 +2325,7 @@ namespace libdrawio {
                     p_dir == EAST ? x + width + 20 :
                     p_dir == SOUTH ? y + height + 20 : x - 20);
           if (start) {
-            if (p_dir == NORTH || p_dir == SOUTH) {
+            if (vertical(p_dir)) {
               p_dir = (targetX + targetWidth / 2 < sourceX + sourceWidth / 2
                        ? WEST : EAST);
             } else {
@@ -2313,36 +2333,61 @@ namespace libdrawio {
                        ? NORTH : SOUTH);
             }
           } else {
-            if (p_dir == NORTH || p_dir == SOUTH) {
+            if (vertical(p_dir)) {
               p_dir = (q.x < p.x ? WEST : EAST);
             } else {
               p_dir = (q.y < p.y ? NORTH : SOUTH);
             }
           }
         } else if (p_dir == q_dir) {
-          double test = p_dir == NORTH || p_dir == SOUTH ? p.x : p.y;
-          double target = q_dir == NORTH || q_dir == SOUTH ? q.x : q.y;
+          double test = vertical(p_dir) ? p.x : p.y;
+          double target = vertical(p_dir) ? q.x : q.y;
           if (test == target) {
             q_dir = opposite(q_dir);
             continue;
           }
-          bool obstruction_s =
-            (p_dir == NORTH || p_dir == SOUTH
-             ? (sourceX - 20 < q.x && q.x < sourceX + sourceWidth + 20
-                && sourceX - 20 < q.x && q.x < sourceX + sourceWidth + 20
-                && ((p.y < sourceY && sourceY + sourceHeight/2 < targetY + targetHeight/2)
-                    || (p.y > sourceY + sourceHeight
-                        && sourceY + sourceHeight/2 > targetY + targetHeight/2)))
-             : (sourceY - 20 < q.y && q.y < sourceY + sourceHeight + 20
-                && sourceY - 20 < p.y && p.y < sourceY + sourceHeight + 20
-                && ((p.x < sourceX && sourceX + sourceWidth/2 < targetX + targetWidth/2)
-                    || (p.x > sourceX + sourceWidth
-                        
-                        && sourceX + sourceWidth/2 > targetX + targetWidth/2))));
-          bool obstruction_t =
-            (p_dir == EAST || p_dir == WEST
-             ? targetY - 20 < p.y && p.y < targetY + targetHeight + 20
-             : targetX - 20 < p.x && p.x < targetX + targetWidth + 20);
+          if (targetX <= p.x && p.x <= targetX + targetHeight
+              && targetY <= p.y && p.y <= targetY + targetHeight) {
+            q_dir = opposite(q_dir);
+            continue;
+          }
+          bool obstruction_s = false;
+          if (vertical(p_dir)
+              && sourceX - 20 < q.x && q.x < sourceX + sourceWidth + 20) {
+            if (p.y < sourceY) {
+              obstruction_s = sourceY + sourceHeight/2 < targetY + targetHeight/2;
+            } else if (p.y > sourceY + sourceHeight) {
+              obstruction_s = sourceY + sourceHeight/2 > targetY + targetHeight/2;
+            }
+          } else if (horizontal(p_dir)
+                     && sourceY - 20 < q.y && q.y < sourceY + sourceHeight + 2
+                     && sourceY - 20 < p.y && p.y < sourceY + sourceHeight + 20) {
+            if (p.x < sourceX) {
+              obstruction_s = sourceX + sourceWidth/2 < targetX + targetWidth/2;
+            } else if (p.x > sourceX + sourceWidth) {
+              obstruction_s = sourceX + sourceWidth/2 > targetX + targetWidth/2;
+            }
+          }
+          bool obstruction_t = false;
+          if (vertical(p_dir)
+              && targetX - 20 < p.x && p.x < targetX + targetWidth + 20) {
+            if (p.y < sourceY) {
+              obstruction_t = sourceY + sourceHeight/2 > targetY + targetHeight/2;
+            } else if (p.y > sourceY + sourceHeight) {
+              obstruction_t = sourceY + sourceHeight/2 < targetY + targetHeight/2;
+            }
+          } else  if (horizontal(p_dir)
+                      && targetY - 20 < p.y && p.y < targetY + targetHeight + 20) {
+            if (p.x < sourceX) {
+              obstruction_t = sourceX + sourceWidth/2 > targetX + targetWidth/2;
+            } else if (p.x > sourceX + sourceWidth) {
+              obstruction_t = sourceX + sourceWidth/2 < targetX + targetWidth/2;
+            }
+          }
+          if (targetX <= p.x && p.x <= targetX + targetHeight
+              && targetY <= p.y && p.y <= targetY + targetHeight) {
+            obstruction_t = false;
+          }
           if (!obstruction_t || obstruction_s) {
             if (p_dir == NORTH) {
               change = std::min(change, targetY - 20);
@@ -2353,7 +2398,7 @@ namespace libdrawio {
             } else {
               change = std::min(change, targetX - 20);
             }
-            if (p_dir == NORTH || p_dir == SOUTH) {
+            if (vertical(p_dir)) {
               p_dir = (q.x < p.x ? WEST : EAST);
             } else {
               p_dir = (q.y < p.y ? NORTH : SOUTH);
@@ -2363,7 +2408,7 @@ namespace libdrawio {
                       p_dir == EAST ? (sourceX + targetX + sourceWidth) / 2 :
                       p_dir == SOUTH ? (sourceY + targetY + sourceHeight) / 2 :
                       (sourceX + targetX + targetWidth) / 2);
-            if (p_dir == NORTH || p_dir == SOUTH) {
+            if (vertical(p_dir)) {
               p_dir = (sourceX < p.x ? WEST : EAST);
             } else {
               p_dir = (sourceY < p.y ? NORTH : SOUTH);

@@ -23,6 +23,21 @@ namespace libdrawio {
     return (Direction)(((int)dir + 2) % 4);
   }
 
+  inline bool horizontal(Direction dir)
+  {
+    return (int)dir % 2 == 1;
+  }
+
+  inline bool vertical(Direction dir)
+  {
+    return !horizontal(dir);
+  }
+
+  inline bool perpendicular(Direction dir1, Direction dir2)
+  {
+    return std::abs((int)dir1 - (int)dir2) % 2 == 1;
+  }
+
   enum AlignH {
     LEFT,
     CENTER,
